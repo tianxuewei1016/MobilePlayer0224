@@ -1,6 +1,7 @@
 package com.atguigu.mobileplayer0224.fragment;
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
@@ -11,9 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.atguigu.mobileplayer0224.R;
+import com.atguigu.mobileplayer0224.activity.SystemVideoPlayerActivity;
 import com.atguigu.mobileplayer0224.adapter.LocalVideoAdapter;
 import com.atguigu.mobileplayer0224.base.BaseFragment;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
@@ -70,14 +71,22 @@ public class LocalVideoFragment extends BaseFragment {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //            MediaItem mediaItem = mediaItems.get(position);
-//            Intent intent = new Intent();
-//            intent.setDataAndType(Uri.parse(mediaItem.getData()), "video/*");
-//            startActivity(intent);
             MediaItem item = adapter.getItem(position);
-            Toast.makeText(mContext, "" + item.toString(), Toast.LENGTH_SHORT).show();
+            // Toast.makeText(mContext, "" + item.toString(), Toast.LENGTH_SHORT).show();
+            /**
+             * 调用系统的播放器播放视频
+             */
+            Intent intent = new Intent(mContext,SystemVideoPlayerActivity.class);
+            intent.setDataAndType(Uri.parse(item.getData()), "video/*");
+            startActivity(intent);
         }
     }
 
+    /**
+     * 当子类需要：
+     * 1.联网请求网络，的时候重写该方法
+     * 2.绑定数据
+     */
     @Override
     public void initData() {
         super.initData();
@@ -96,18 +105,23 @@ public class LocalVideoFragment extends BaseFragment {
                 ContentResolver resolver = mContext.getContentResolver();
                 Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
                 String[] objs = {
+                        //媒体商品,视频,媒体
                         MediaStore.Video.Media.DISPLAY_NAME,//在sdcard显示的视频名称
                         MediaStore.Video.Media.DURATION,//视频的时长,毫秒
                         MediaStore.Video.Media.SIZE,//文件大小-byte
                         MediaStore.Video.Media.DATA,//在sdcard的路径-播放地址
                 };
-
+                //Cursor光标的意思,query查询的意思
                 Cursor cursor = resolver.query(uri, objs, null, null, null);
                 if (cursor != null) {
                     while (cursor.moveToNext()) {
+                        //里面也可以是0
                         String name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                        //里面也可以是1
                         long duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DURATION));
+                        //里面也可以是2
                         long size = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.SIZE));
+                        //里面也可以是3
                         String data = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
 
                         mediaItems.add(new MediaItem(name, duration, size, data));

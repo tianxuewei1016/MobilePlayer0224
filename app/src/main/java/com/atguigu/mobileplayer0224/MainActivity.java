@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addFragment(Fragment currentFragment) {
+        //缓存的不等于当前的
         if (tempFragment != currentFragment) {
             //开启事务
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
