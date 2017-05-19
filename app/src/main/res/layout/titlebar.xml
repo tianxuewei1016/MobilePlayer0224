@@ -34,15 +34,15 @@
 
         <TextView
             android:id="@+id/tv_game"
-            android:drawableLeft="@drawable/ic_topbanner_game"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_topbanner_game" />
 
         <ImageView
             android:layout_width="6dp"
             android:layout_height="6dp"
             android:layout_alignRight="@+id/tv_game"
-            android:src="@drawable/shape_red"/>
+            android:src="@drawable/shape_red" />
     </RelativeLayout>
 
     <ImageView
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:src="@drawable/ic_topbanner_record"/>
+        android:src="@drawable/ic_topbanner_record" />
 
 
 </LinearLayout>
