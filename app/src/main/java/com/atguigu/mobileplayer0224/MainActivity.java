@@ -5,7 +5,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -27,6 +27,10 @@ public class MainActivity extends AppCompatActivity {
      * Fragment页面的下标位置
      */
     private int position;
+    /**
+     * 缓存当前显示的Fragment
+     */
+    private Fragment tempFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,19 +74,42 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
                 //根据位置得到相应的Fragment
-                BaseFragment baseFragment = fragments.get(position);
-                //1.得到FragmentManager
-                FragmentManager fm = getSupportFragmentManager();
-                //2.开启事物
-                FragmentTransaction ft = fm.beginTransaction();
-                //3.添加
-                ft.replace(R.id.fl_mainc_content,baseFragment);
-                //4.提交
-                ft.commit();
+                BaseFragment currentFragment = fragments.get(position);
+                addFragment(currentFragment);
+
             }
         });
         //默认选中本地视频
         rg_main.check(R.id.rb_local_video);
+    }
+
+    private void addFragment(Fragment currentFragment) {
+        if (tempFragment != currentFragment) {
+            //开启事务
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            //切换
+            if (currentFragment != null) {
+                //是否添加过,如果没有添加过
+                if (!currentFragment.isAdded()) {
+                    //把之前显示的给隐藏
+                    if (tempFragment != null) {
+                        ft.hide(tempFragment);
+                    }
+                    //如果没有添加就添加
+                    ft.add(R.id.fl_mainc_content, currentFragment);
+                } else {
+                    //把之前的隐藏
+                    if (tempFragment != null) {
+                        ft.hide(tempFragment);
+                    }
+                    //如果添加了就直接显示
+                    ft.show(currentFragment);
+                }
+                //最后一步，提交事务
+                ft.commit();
+            }
+            tempFragment = currentFragment;
+        }
     }
 
     /**
@@ -91,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
      * @param activity
      * @return
      */
+
     public static boolean isGrantExternalRW(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity.checkSelfPermission(
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

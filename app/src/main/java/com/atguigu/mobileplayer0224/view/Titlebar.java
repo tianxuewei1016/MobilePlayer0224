@@ -14,7 +14,7 @@ import com.atguigu.mobileplayer0224.R;
 /**
  * 作者：田学伟 on 2017/5/19 10:55
  * QQ：93226539
- * 作用：
+ * 作用：自定义标题栏
  */
 
 public class Titlebar extends LinearLayout implements View.OnClickListener {
