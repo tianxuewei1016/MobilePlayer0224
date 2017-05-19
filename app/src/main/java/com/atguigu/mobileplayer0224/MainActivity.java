@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private int position;
     /**
-     * 缓存当前显示的Fragment
+     * 缓存当前显示的Fragment,把之前实例化的东西缓存下来
      */
     private Fragment tempFragment;
 
