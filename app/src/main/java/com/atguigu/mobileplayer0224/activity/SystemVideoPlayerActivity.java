@@ -3,15 +3,24 @@ package com.atguigu.mobileplayer0224.activity;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.atguigu.mobileplayer0224.R;
+import com.atguigu.mobileplayer0224.utils.Utils;
 
 //一般有上下左右的用相对布局或者帧布局
-public class SystemVideoPlayerActivity extends AppCompatActivity {
+public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     /**
      * 视频的本质是连续的画面,在加上声音,形成电影
      * VideoView简介:
@@ -34,21 +43,134 @@ public class SystemVideoPlayerActivity extends AppCompatActivity {
     private VideoView vv;
     private Uri uri;
 
+
+    private LinearLayout llTop;
+    private TextView tvName;
+    private ImageView ivBattery;
+    private TextView tvSystetime;
+    private Button btnVoice;
+    private SeekBar seekbarVoice;
+    private Button btnSwichePlayer;
+    private LinearLayout llBottom;
+    private TextView tvCurrenttime;
+    private SeekBar seekbarVideo;
+    private TextView tvDuration;
+    private Button btnExit;
+    private Button btnPre;
+    private Button btnStartPause;
+    private Button btnNext;
+    private Button btnSwichScreen;
+    private Utils utils;
+
+    /**
+     * Find the Views in the layout<br />
+     * <br />
+     * Auto-created on 2017-05-20 11:02:04 by Android Layout Finder
+     * (http://www.buzzingandroid.com/tools/android-layout-finder)
+     */
+    private void findViews() {
+        setContentView(R.layout.activity_system_video_player);
+        vv = (VideoView) findViewById(R.id.vv);
+        llTop = (LinearLayout) findViewById(R.id.ll_top);
+        tvName = (TextView) findViewById(R.id.tv_name);
+        ivBattery = (ImageView) findViewById(R.id.iv_battery);
+        tvSystetime = (TextView) findViewById(R.id.tv_systetime);
+        btnVoice = (Button) findViewById(R.id.btn_voice);
+        seekbarVoice = (SeekBar) findViewById(R.id.seekbar_voice);
+        btnSwichePlayer = (Button) findViewById(R.id.btn_swiche_player);
+        llBottom = (LinearLayout) findViewById(R.id.ll_bottom);
+        tvCurrenttime = (TextView) findViewById(R.id.tv_currenttime);
+        seekbarVideo = (SeekBar) findViewById(R.id.seekbar_video);
+        tvDuration = (TextView) findViewById(R.id.tv_duration);
+        btnExit = (Button) findViewById(R.id.btn_exit);
+        btnPre = (Button) findViewById(R.id.btn_pre);
+        btnStartPause = (Button) findViewById(R.id.btn_start_pause);
+        btnNext = (Button) findViewById(R.id.btn_next);
+        btnSwichScreen = (Button) findViewById(R.id.btn_swich_screen);
+
+        btnVoice.setOnClickListener(this);
+        btnSwichePlayer.setOnClickListener(this);
+        btnExit.setOnClickListener(this);
+        btnPre.setOnClickListener(this);
+        btnStartPause.setOnClickListener(this);
+        btnNext.setOnClickListener(this);
+        btnSwichScreen.setOnClickListener(this);
+    }
+
+    /**
+     * Handle button click events<br />
+     * <br />
+     * Auto-created on 2017-05-20 11:02:04 by Android Layout Finder
+     * (http://www.buzzingandroid.com/tools/android-layout-finder)
+     */
+    @Override
+    public void onClick(View v) {
+        if (v == btnVoice) {
+            // Handle clicks for btnVoice
+        } else if (v == btnSwichePlayer) {
+            // Handle clicks for btnSwichePlayer
+        } else if (v == btnExit) {
+            // Handle clicks for btnExit
+        } else if (v == btnPre) {
+            // Handle clicks for btnPre
+        } else if (v == btnStartPause) {
+            if (vv.isPlaying()) {
+                //暂停
+                vv.pause();
+                //按钮状态-播放
+                btnStartPause.setBackgroundResource(R.drawable.btn_pause_normal);
+
+            } else {
+                //播放
+                vv.start();
+                //按钮状态-播放
+                btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
+            }
+        } else if (v == btnNext) {
+            // Handle clicks for btnNext
+        } else if (v == btnSwichScreen) {
+            // Handle clicks for btnSwichScreen
+        }
+    }
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            //得到当前的进度
+            int currentPosition = vv.getCurrentPosition();
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_system_video_player);
-        vv = (VideoView) findViewById(R.id.vv);
 
+        initData();
+
+        findViews();
         //得到播放的地址
         uri = getIntent().getData();
+        setListener();
 
+        //设置播放的地址
+        vv.setVideoURI(uri);
+
+        //设置控制面板
+        vv.setMediaController(new MediaController(this));
+    }
+
+    private void setListener() {
         //设置播放器的三个监听:播放准备好的监听,播放完成的监听,播放出错的监听
         vv.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             //底层准备播放完成的时候回调
             @Override
             public void onPrepared(MediaPlayer mp) {
-                vv.start();
+                //得到视频的总时长
+                int duration = vv.getDuration();
+                seekbarVideo.setMax(duration);
+                vv.start();//开始播放
             }
         });
 
@@ -69,10 +191,42 @@ public class SystemVideoPlayerActivity extends AppCompatActivity {
             }
         });
 
-        //设置播放的地址
-        vv.setVideoURI(uri);
+        //设置SeekBar状态改变的监听
+        seekbarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            /**
+             *
+             * @param seekBar
+             * @param progress
+             * @param fromUser true:用户改变 false: 系统更新的
+             */
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    vv.seekTo(progress);
+                }
+            }
+            //设置控制面板
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
 
-        //设置控制面板
-        vv.setMediaController(new MediaController(this));
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    private void initData() {
+        utils = new Utils();
+    }
+
+    @Override
+    protected void onDestroy() {
+        //先释放子类的,在释放父类的
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
+
     }
 }
