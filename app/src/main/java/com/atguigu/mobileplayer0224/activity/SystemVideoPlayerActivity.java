@@ -122,13 +122,13 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     @Override
     public void onClick(View v) {
         if (v == btnVoice) {
-            // Handle clicks for btnVoice
+
         } else if (v == btnSwichePlayer) {
-            // Handle clicks for btnSwichePlayer
+
         } else if (v == btnExit) {
-            // Handle clicks for btnExit
+            finish();
         } else if (v == btnPre) {
-            // Handle clicks for btnPre
+            setPreVideo();
         } else if (v == btnStartPause) {
             if (vv.isPlaying()) {
                 //暂停
@@ -143,9 +143,22 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
             }
         } else if (v == btnNext) {
-            // Handle clicks for btnNext
+            setNextVideo();
         } else if (v == btnSwichScreen) {
-            // Handle clicks for btnSwichScreen
+
+        }
+    }
+
+    private void setPreVideo() {
+        position--;
+        if(position > 0) {
+            //还是在列表范围内容
+            MediaItem mediaItem = mediaItems.get(position);
+            vv.setVideoPath(mediaItem.getData());
+            tvName.setText(mediaItem.getName());
+
+            //设置按钮状态
+            setButtonStatus();
         }
     }
 
@@ -205,16 +218,56 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     private void setData() {
 
-        if(mediaItems != null&&mediaItems.size()>0) {
+        if (mediaItems != null && mediaItems.size() > 0) {
 
             MediaItem mediaItem = mediaItems.get(position);
             tvName.setText(mediaItem.getName());
             vv.setVideoPath(mediaItem.getData());
-        }else if(uri != null) {
+        } else if (uri != null) {
             //设置播放的地址
             vv.setVideoURI(uri);
         }
+        setButtonStatus();
     }
+
+    private void setButtonStatus() {
+        if(mediaItems != null && mediaItems.size() >0){
+            //有视频播放
+            setEnable(true);
+
+            if(position ==0){
+                btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
+                btnPre.setEnabled(false);
+            }
+
+            if(position ==mediaItems.size()-1){
+                btnNext.setBackgroundResource(R.drawable.btn_next_gray);
+                btnNext.setEnabled(false);
+            }
+
+        }else if(uri != null){
+            //上一个和下一个不可用点击
+            setEnable(false);
+        }
+    }
+    /**
+     * 设置按钮是否可以点击
+     * @param b
+     */
+    private void setEnable(boolean b) {
+        if( b){
+            //上一个和下一个都可以点击
+            btnPre.setBackgroundResource(R.drawable.btn_pre_selector);
+            btnNext.setBackgroundResource(R.drawable.btn_next_selector);
+        }else {
+            //上一个和下一个灰色，并且不可用点击
+            btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
+            btnNext.setBackgroundResource(R.drawable.btn_next_gray);
+        }
+        btnPre.setEnabled(b);
+        btnNext.setEnabled(b);
+    }
+
 
     private void getData() {
         //得到播放的地址
@@ -297,8 +350,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             //如果是列表就播放下一个,如果是最后一个就退出当前页面
             @Override
             public void onCompletion(MediaPlayer mp) {
-                Toast.makeText(SystemVideoPlayerActivity.this, "视频播放完成", Toast.LENGTH_SHORT).show();
-                finish();
+//                Toast.makeText(SystemVideoPlayerActivity.this, "视频播放完成", Toast.LENGTH_SHORT).show();
+//                finish();
+                setNextVideo();
             }
         });
 
@@ -328,6 +382,22 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
             }
         });
+    }
+
+    private void setNextVideo() {
+        position++;
+        if (position < mediaItems.size()) {
+            //还是在列表的范围的内容
+            MediaItem mediaItem = mediaItems.get(position);
+            vv.setVideoPath(mediaItem.getData());
+            tvName.setText(mediaItem.getName());
+
+            //设置按钮的状态
+            setButtonStatus();
+        } else {
+            Toast.makeText(this, "退出播放器", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
 
