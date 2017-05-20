@@ -10,6 +10,7 @@ import android.widget.VideoView;
 
 import com.atguigu.mobileplayer0224.R;
 
+//一般有上下左右的用相对布局或者帧布局
 public class SystemVideoPlayerActivity extends AppCompatActivity {
     /**
      * 视频的本质是连续的画面,在加上声音,形成电影
