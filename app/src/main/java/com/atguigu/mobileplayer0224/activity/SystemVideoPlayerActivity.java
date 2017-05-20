@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,9 +39,11 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      * java代码的效率比较低,C代码是底层代码效率比较高,视频播放不卡顿
      */
 
+    //视频进度更新
+    private static final int PROGRESS = 0;
+
     private VideoView vv;
     private Uri uri;
-
 
     private LinearLayout llTop;
     private TextView tvName;
@@ -137,8 +138,21 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            //得到当前的进度
-            int currentPosition = vv.getCurrentPosition();
+            switch (msg.what){
+                case PROGRESS:
+                    //得到当前进度
+                    int currentPosition = vv.getCurrentPosition();
+                    //让SeekBar进度更新
+                    seekbarVideo.setProgress(currentPosition);
+
+                    //设置当前文本的播放速度
+                    tvCurrenttime.setText(utils.stringForTime(currentPosition));
+
+                    //循环发送消息
+                    handler.sendEmptyMessageDelayed(PROGRESS,0);
+
+                    break;
+            }
 
         }
     };
@@ -158,7 +172,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         vv.setVideoURI(uri);
 
         //设置控制面板
-        vv.setMediaController(new MediaController(this));
+//        vv.setMediaController(new MediaController(this));
     }
 
     private void setListener() {
