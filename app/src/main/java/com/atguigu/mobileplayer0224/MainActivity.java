@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void initFragment() {
         fragments = new ArrayList<>();
-        fragments = new ArrayList<>();
         fragments.add(new LocalVideoFragment());//本地视频
         fragments.add(new LocalAudioFragment());//本地音乐
         fragments.add(new NetAudioFragment());//网络音乐

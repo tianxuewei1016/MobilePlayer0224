@@ -11,6 +11,24 @@ import android.widget.VideoView;
 import com.atguigu.mobileplayer0224.R;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity {
+    /**
+     * 视频的本质是连续的画面,在加上声音,形成电影
+     * VideoView简介:
+     * VideoView继承SurfaceView,内部封装MediaPlayer,
+     * 可以用来显示一秒切换很多图片的行为--视频的播放
+     * 封装了MediaPlayer就可以播放视频和音频
+     * <p>
+     * SurfaceView:使用的双缓冲技术,它在子线程中绘制图片,这样不会阻塞主线程,
+     * 适合游戏开发和视频的播放的显示
+     * <p>
+     * MediaPlayer负责调用底层的C代码解码视频的声音和画面.
+     * MediaPlayer有自己的生命周期,通过它可以播放网络和本地的视频音频.
+     * 视频: .mp4,.3gp,.ts(系统自带的支持的)
+     * 音频: .mp3,.ogg
+     * <p>
+     * 为什么调用C代码?
+     * java代码的效率比较低,C代码是底层代码效率比较高,视频播放不卡顿
+     */
 
     private VideoView vv;
     private Uri uri;
@@ -19,7 +37,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_system_video_player);
-        vv = (VideoView)findViewById(R.id.vv);
+        vv = (VideoView) findViewById(R.id.vv);
 
         //得到播放的地址
         uri = getIntent().getData();
