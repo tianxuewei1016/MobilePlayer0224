@@ -1,9 +1,11 @@
 package com.atguigu.mobileplayer0224.fragment;
 
+
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -71,14 +73,25 @@ public class LocalVideoFragment extends BaseFragment {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //            MediaItem mediaItem = mediaItems.get(position);
-            MediaItem item = adapter.getItem(position);
+            //MediaItem item = adapter.getItem(position);
             // Toast.makeText(mContext, "" + item.toString(), Toast.LENGTH_SHORT).show();
             /**
              * 调用系统的播放器播放视频
              */
-            Intent intent = new Intent(mContext,SystemVideoPlayerActivity.class);
-            intent.setDataAndType(Uri.parse(item.getData()), "video/*");
+//            Intent intent = new Intent(mContext,SystemVideoPlayerActivity.class);
+//            intent.setDataAndType(Uri.parse(item.getData()), "video/*");
+//            startActivity(intent);
+
+            //传递视频列表过去
+            Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
+
+            Bundle bunlder = new Bundle();
+            bunlder.putSerializable("videolist",mediaItems);
+            intent.putExtra("position",position);
+            //放入Bundler
+            intent.putExtras(bunlder);
             startActivity(intent);
+
         }
     }
 

@@ -62,7 +62,7 @@
             <SeekBar
 
                 android:id="@+id/seekbar_voice"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:maxHeight="6dp"
@@ -106,7 +106,7 @@
 
             <SeekBar
                 android:id="@+id/seekbar_video"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:layout_weight="1"
