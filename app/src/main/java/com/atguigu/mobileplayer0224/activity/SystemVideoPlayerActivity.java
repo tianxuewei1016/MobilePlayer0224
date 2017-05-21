@@ -15,8 +15,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -119,7 +121,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private int maxVoice;
     //是否静音
     private boolean isMute = false;
-
+    /**
+     * 震动
+     */
     private Vibrator vibrator;
 
     /**
@@ -192,7 +196,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 setVideoType(DEFUALT_SCREEN);
             } else {
                 //全屏
-                updateVoiceProgress(Full_SCREEN);
+                setVideoType(Full_SCREEN);
             }
         }
         handler.removeMessages(HIDE_MEDIACONTROLLER);
@@ -409,41 +413,41 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     /**
+     * 滑动的区域
+     */
+    private int touchRang = 0;
+
+    /**
      * 当按下的时候的音量
      */
     private int mVol;
     private float startX;
     private float startY;
-    /**
-     * 滑动的区域
-     */
-    private int touchRang = 0;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        super.onTouchEvent(event);
         //把事件交给手势是比起解析
         detector.onTouchEvent(event);
+        super.onTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             //1.按下
-            //按下的时候记录起始坐标，最大的滑动区域（，当前的音量
+            //按下的时候记录起始坐标，最大的滑动区域（屏幕的高），当前的音量
             startY = event.getY();
             startX = event.getX();
-            touchRang = Math.min(screenHeight, screenWidth);
-            mVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            touchRang = Math.min(screenHeight, screenWidth);//screeHeight
+            mVol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
             //把消息移除
             handler.removeMessages(HIDE_MEDIACONTROLLER);
 
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             float endY = event.getY();
-            //屏幕滑动的距离
             float distanceY = startY - endY;
             if (startX > screenWidth / 2) {
                 //屏幕滑动的距离
                 //滑动屏幕的距离 ： 总距离  = 改变的声音 ： 总声音
                 //改变的声音 = （滑动屏幕的距离 / 总距离)*总声音
                 float delta = (distanceY / touchRang) * maxVoice;
-                //设置的声音  = 原来记录的 + 改变的声音
+                // 设置的声音  = 原来记录的 + 改变的声音
                 int volue = (int) Math.min(Math.max(mVol + delta, 0), maxVoice);
                 //判断
                 if (delta != 0) {
@@ -455,10 +459,12 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 final double FLING_MIN_VELOCITY = 0.5;
                 if (startY - endY > FLING_MIN_DISTANCE
                         && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                    Log.e("TAG", "up");
                     setBrightness(20);
                 }
                 if (startY - endY < FLING_MIN_DISTANCE
                         && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                    Log.e("TAG", "down");
                     setBrightness(-20);
                 }
 
@@ -470,13 +476,28 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         return true;
     }
 
-    /**
-     * 设置屏幕的亮度 lp = 0 全暗 ，lp= -1,根据系统设置， lp = 1; 最亮
-     *
-     * @param brightness
-     */
-    private void setBrightness(float brightness) {
-
+    /*
+    *
+    * 设置屏幕亮度 lp = 0 全暗 ，lp= -1,根据系统设置， lp = 1; 最亮
+    */
+    public void setBrightness(float brightness) {
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        // if (lp.screenBrightness <= 0.1) {
+        // return;
+        // }
+        lp.screenBrightness = lp.screenBrightness + brightness / 255.0f;
+        if (lp.screenBrightness > 1) {
+            lp.screenBrightness = 1;
+            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            long[] pattern = {10, 200}; // OFF/ON/OFF/ON...
+            vibrator.vibrate(pattern, -1);
+        } else if (lp.screenBrightness < 0.2) {
+            lp.screenBrightness = (float) 0.2;
+            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            long[] pattern = {10, 200}; // OFF/ON/OFF/ON...
+            vibrator.vibrate(pattern, -1);
+        }
+        getWindow().setAttributes(lp);
     }
 
     /**
@@ -488,17 +509,19 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      * 隐藏控制面板
      */
     private void hideMediaController() {
+        isShowMediaController = false;
         //这个是隐藏不占位置
         llBottom.setVisibility(View.INVISIBLE);
         //这个隐藏占位置
         llTop.setVisibility(View.GONE);
-        isShowMediaController = false;
+
     }
 
     public void showMediaController() {
+        isShowMediaController = true;
         llBottom.setVisibility(View.VISIBLE);
         llTop.setVisibility(View.VISIBLE);
-        isShowMediaController = true;
+
     }
 
 
@@ -718,6 +741,26 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         btnNext.setEnabled(b);
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            //改变音量值
+            currentVoice--;
+            updateVoiceProgress(currentVoice);
+            //移除消息
+            handler.removeMessages(HIDE_MEDIACONTROLLER);
+            //发消息
+            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER,4000);
+            return true;
+        }else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            currentVoice++;
+            updateVoiceProgress(currentVoice);
+            handler.removeMessages(HIDE_MEDIACONTROLLER);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER,4000);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
     @Override
     protected void onDestroy() {

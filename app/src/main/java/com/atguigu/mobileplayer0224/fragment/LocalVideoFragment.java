@@ -111,9 +111,6 @@ public class LocalVideoFragment extends BaseFragment {
     /**
      * 得到数据
      */
-    /**
-     * 得到数据
-     */
     private void getData() {
         new Thread() {
             public void run() {
