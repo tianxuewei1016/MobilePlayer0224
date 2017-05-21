@@ -86,8 +86,8 @@ public class LocalVideoFragment extends BaseFragment {
             Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
 
             Bundle bunlder = new Bundle();
-            bunlder.putSerializable("videolist",mediaItems);
-            intent.putExtra("position",position);
+            bunlder.putSerializable("videolist", mediaItems);
+            intent.putExtra("position", position);
             //放入Bundler
             intent.putExtras(bunlder);
             startActivity(intent);
@@ -111,6 +111,9 @@ public class LocalVideoFragment extends BaseFragment {
     /**
      * 得到数据
      */
+    /**
+     * 得到数据
+     */
     private void getData() {
         new Thread() {
             public void run() {
@@ -118,13 +121,11 @@ public class LocalVideoFragment extends BaseFragment {
                 ContentResolver resolver = mContext.getContentResolver();
                 Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
                 String[] objs = {
-                        //媒体商品,视频,媒体
-                        MediaStore.Video.Media.DISPLAY_NAME,//在sdcard显示的视频名称
-                        MediaStore.Video.Media.DURATION,//视频的时长,毫秒
-                        MediaStore.Video.Media.SIZE,//文件大小-byte
-                        MediaStore.Video.Media.DATA,//在sdcard的路径-播放地址
+                        MediaStore.Video.Media.DISPLAY_NAME,//视频在sdcard上的名称
+                        MediaStore.Video.Media.DURATION,//视频时长
+                        MediaStore.Video.Media.SIZE,//视频文件的大小
+                        MediaStore.Video.Media.DATA//视频播放地址
                 };
-                //Cursor光标的意思,query查询的意思
                 Cursor cursor = resolver.query(uri, objs, null, null, null);
                 if (cursor != null) {
                     while (cursor.moveToNext()) {
@@ -136,15 +137,19 @@ public class LocalVideoFragment extends BaseFragment {
                         long size = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.SIZE));
                         //里面也可以是3
                         String data = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+                        Log.e("TAG", "name==" + name + ",duration==" + duration + ",data===" + data);
 
                         mediaItems.add(new MediaItem(name, duration, size, data));
-                        //使用handler
-                        handler.sendEmptyMessage(0);
+
+
                     }
+
                     cursor.close();
                 }
+
+                //使用handler
+                handler.sendEmptyMessage(0);
             }
         }.start();
     }
 }
-

@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -119,6 +120,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     //是否静音
     private boolean isMute = false;
 
+    private Vibrator vibrator;
+
     /**
      * Find the Views in the layout<br />
      * <br />
@@ -189,7 +192,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 setVideoType(DEFUALT_SCREEN);
             } else {
                 //全屏
-                setVideoType(Full_SCREEN);
+                updateVoiceProgress(Full_SCREEN);
             }
         }
         handler.removeMessages(HIDE_MEDIACONTROLLER);
@@ -405,11 +408,75 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     }
 
+    /**
+     * 当按下的时候的音量
+     */
+    private int mVol;
+    private float startX;
+    private float startY;
+    /**
+     * 滑动的区域
+     */
+    private int touchRang = 0;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
         //把事件交给手势是比起解析
         detector.onTouchEvent(event);
-        return super.onTouchEvent(event);
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            //1.按下
+            //按下的时候记录起始坐标，最大的滑动区域（，当前的音量
+            startY = event.getY();
+            startX = event.getX();
+            touchRang = Math.min(screenHeight, screenWidth);
+            mVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            //把消息移除
+            handler.removeMessages(HIDE_MEDIACONTROLLER);
+
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            float endY = event.getY();
+            //屏幕滑动的距离
+            float distanceY = startY - endY;
+            if (startX > screenWidth / 2) {
+                //屏幕滑动的距离
+                //滑动屏幕的距离 ： 总距离  = 改变的声音 ： 总声音
+                //改变的声音 = （滑动屏幕的距离 / 总距离)*总声音
+                float delta = (distanceY / touchRang) * maxVoice;
+                //设置的声音  = 原来记录的 + 改变的声音
+                int volue = (int) Math.min(Math.max(mVol + delta, 0), maxVoice);
+                //判断
+                if (delta != 0) {
+                    updateVoiceProgress(volue);
+                }
+            } else {
+                //左边屏幕--改变亮度
+                final double FLING_MIN_DISTANCE = 0.5;
+                final double FLING_MIN_VELOCITY = 0.5;
+                if (startY - endY > FLING_MIN_DISTANCE
+                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                    setBrightness(20);
+                }
+                if (startY - endY < FLING_MIN_DISTANCE
+                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                    setBrightness(-20);
+                }
+
+            }
+
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER, 4000);
+        }
+        return true;
+    }
+
+    /**
+     * 设置屏幕的亮度 lp = 0 全暗 ，lp= -1,根据系统设置， lp = 1; 最亮
+     *
+     * @param brightness
+     */
+    private void setBrightness(float brightness) {
+
     }
 
     /**
@@ -583,7 +650,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     private void setPreVideo() {
         position--;
-        if (position > 0) {
+        if (position >= 0) {
             //还是在列表范围内容
             MediaItem mediaItem = mediaItems.get(position);
             vv.setVideoPath(mediaItem.getData());
@@ -650,7 +717,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         btnPre.setEnabled(b);
         btnNext.setEnabled(b);
     }
-
 
 
     @Override
