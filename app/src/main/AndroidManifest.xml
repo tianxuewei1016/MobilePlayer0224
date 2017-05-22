@@ -4,9 +4,14 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
+        android:name=".app.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/login_icon"
         android:label="@string/app_name"
@@ -31,6 +36,7 @@
             android:label="@string/plyaer_name"
             android:screenOrientation="landscape"
             android:theme="@style/myScreen">
+
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -276,9 +282,12 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
-
         </activity>
+        <activity
+            android:name=".activity.VitamioVideoPlayerActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:theme="@style/noAnimation_Theme"></activity>
     </application>
 
 </manifest>

@@ -1,11 +1,13 @@
 package com.atguigu.mobileplayer0224.activity;
 
+
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,7 +15,6 @@ import android.os.Message;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -29,14 +30,18 @@ import android.widget.Toast;
 import com.atguigu.mobileplayer0224.R;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
 import com.atguigu.mobileplayer0224.utils.Utils;
-import com.atguigu.mobileplayer0224.view.VideoView;
+import com.atguigu.mobileplayer0224.view.VitamioVideoView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import io.vov.vitamio.MediaPlayer;
+import io.vov.vitamio.Vitamio;
+
+
 //一般有上下左右的用相对布局或者帧布局
-public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
+public class VitamioVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     /**
      * 视频的本质是连续的画面,在加上声音,形成电影
      * VideoView简介:
@@ -76,7 +81,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      */
     private static final int Full_SCREEN = 1;
 
-    private VideoView vv;
+    private VitamioVideoView vv;
     private Uri uri;
     private ArrayList<MediaItem> mediaItems;
 
@@ -146,7 +151,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
-        setContentView(R.layout.activity_system_video_player);
+        //初始化解码器
+        Vitamio.isInitialized(getApplicationContext());
+        setContentView(R.layout.activity_vitamio_video_player);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
         tvName = (TextView) findViewById(R.id.tv_name);
         ivBattery = (ImageView) findViewById(R.id.iv_battery);
@@ -163,7 +170,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         btnStartPause = (Button) findViewById(R.id.btn_start_pause);
         btnNext = (Button) findViewById(R.id.btn_next);
         btnSwichScreen = (Button) findViewById(R.id.btn_swich_screen);
-        vv = (VideoView) findViewById(R.id.vv);
+        vv = (VitamioVideoView) findViewById(R.id.vv);
         ll_buffering = (LinearLayout) findViewById(R.id.ll_buffering);
         tv_net_speed = (TextView) findViewById(R.id.tv_net_speed);
         ll_loading = (LinearLayout) findViewById(R.id.ll_loading);
@@ -306,7 +313,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             switch (msg.what) {
                 case SHOW_NET_SPEED:
                     if (isNetUrl) {
-                        String netSpeed = utils.getNetSpeed(SystemVideoPlayerActivity.this);
+                        String netSpeed = utils.getNetSpeed(VitamioVideoPlayerActivity.this);
                         tv_loading_net_speed.setText("正在加载中...." + netSpeed);
                         tv_net_speed.setText("正在缓冲...." + netSpeed);
                         sendEmptyMessageDelayed(SHOW_NET_SPEED, 4000);
@@ -314,7 +321,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     break;
                 case PROGRESS:
                     //得到当前进度
-                    int currentPosition = vv.getCurrentPosition();
+                    int currentPosition = (int) vv.getCurrentPosition();
                     //让SeekBar进度更新
                     seekbarVideo.setProgress(currentPosition);
 
@@ -602,7 +609,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         public void onReceive(Context context, Intent intent) {
             //在主线程中
             int level = intent.getIntExtra("level", 0);
-            Log.e("TAG", "level==" + level);
+            //Log.e("TAG", "level==" + level);
             setBatteryView(level);
         }
     }
@@ -638,7 +645,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 videoHeight = mp.getVideoHeight();
 
                 //得到视频的总时长
-                int duration = vv.getDuration();
+                int duration = (int) vv.getDuration();
                 seekbarVideo.setMax(duration);
                 //设置文本总时间
                 tvDuration.setText(utils.stringForTime(duration));
@@ -670,7 +677,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 //Toast.makeText(SystemVideoPlayerActivity.this, "播放出错了...", Toast.LENGTH_SHORT).show();
                 //1.视频格式不支持,一进来播放就会报错--切换到万能播放器
-                startVitamioPlayer();
+                showErrorDialog();
 
                 //2.播放过程中网络中断,导致网络异常--重新播放--三次重试
 
@@ -757,23 +764,22 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 //        }
     }
 
-    private void startVitamioPlayer() {
-        if(vv != null){
-            vv.stopPlayback();
-        }
-        Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
-        if(mediaItems != null && mediaItems.size() >0){
-            Bundle bunlder = new Bundle();
-            bunlder.putSerializable("videolist",mediaItems);
-            intent.putExtra("position",position);
-            //放入Bundler
-            intent.putExtras(bunlder);
-        }else if(uri != null){
-            intent.setData(uri);
-        }
-        startActivity(intent);
-        finish();//关闭系统播放器
+    /**
+     * 万能播放器出错的处理
+     */
+    private void showErrorDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("当前视频不可播放，请检查网络或者视频文件是否有损坏！")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .show();
     }
+
 
     /**
      * 设置屏幕滑动改变声音

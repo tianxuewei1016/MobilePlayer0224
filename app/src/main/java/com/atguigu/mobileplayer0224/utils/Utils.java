@@ -17,7 +17,6 @@ public class Utils {
 
     private StringBuilder mFormatBuilder;
     private Formatter mFormatter;
-
     private long lastTotalRxBytes = 0;
     private long lastTimeStamp = 0;
 
@@ -37,11 +36,8 @@ public class Utils {
     public String stringForTime(int timeMs) {
         int totalSeconds = timeMs / 1000;
         int seconds = totalSeconds % 60;
-
         int minutes = (totalSeconds / 60) % 60;
-
         int hours = totalSeconds / 3600;
-
         mFormatBuilder.setLength(0);
         if (hours > 0) {
             return mFormatter.format("%d:%02d:%02d", hours, minutes, seconds)
@@ -58,25 +54,25 @@ public class Utils {
      * @return
      */
     public boolean isNetUrl(String url) {
-        boolean isNetUri  = false;
+        boolean isNetUri = false;
         if (url != null) {
-
             if (url.toLowerCase().startsWith("http")
                     || url.toLowerCase().startsWith("rtsp")
                     || url.toLowerCase().startsWith("mms")) {
-                isNetUri  = true;
+                isNetUri = true;
             }
         }
-        return isNetUri ;
+        return isNetUri;
     }
 
 
     /**
      * 显示网络速度
+     *
      * @param context
      * @return
      */
-    public String showNetSpeed(Context context) {
+    public String getNetSpeed(Context context) {
 
         long nowTotalRxBytes = TrafficStats.getUidRxBytes(context.getApplicationInfo().uid) == TrafficStats.UNSUPPORTED ? 0 : (TrafficStats.getTotalRxBytes() / 1024);//转为KB;
         long nowTimeStamp = System.currentTimeMillis();
@@ -85,9 +81,8 @@ public class Utils {
         lastTimeStamp = nowTimeStamp;
         lastTotalRxBytes = nowTotalRxBytes;
 
-        String netSpeed = String.valueOf(speed) + " kb/s";
-        return netSpeed;
+        String msg = String.valueOf(speed) + " kb/s";
+        return msg;
     }
-
 }
 
