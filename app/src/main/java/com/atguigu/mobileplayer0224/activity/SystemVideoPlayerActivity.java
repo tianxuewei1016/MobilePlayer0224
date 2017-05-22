@@ -92,8 +92,10 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwichScreen;
-    private Utils utils;
+    private LinearLayout ll_buffering;
+    private TextView tv_net_speed;
 
+    private Utils utils;
     private MyBroadCastReceiver receiver;
     /**
      * 视频列表的位置
@@ -129,7 +131,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     /**
      * 是否是网络的资源
      */
-    private boolean isNetUri;
+    private boolean isNetUrl;
 
     /**
      * Find the Views in the layout<br />
@@ -156,6 +158,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         btnNext = (Button) findViewById(R.id.btn_next);
         btnSwichScreen = (Button) findViewById(R.id.btn_swich_screen);
         vv = (VideoView) findViewById(R.id.vv);
+        ll_buffering = (LinearLayout)findViewById(R.id.ll_buffering);
+        tv_net_speed = (TextView)findViewById(R.id.tv_net_speed);
 
         btnVoice.setOnClickListener(this);
         btnSwichePlayer.setOnClickListener(this);
@@ -282,6 +286,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         }
     }
 
+    private int preCurrentPosition;
+
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -300,13 +306,26 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     tvSystetime.setText(getSystemTime());
 
                     //设置视频缓存效果
-                    if(isNetUri) {
+                    if(isNetUrl) {
                         int bufferPercentage = vv.getBufferPercentage();
                         int totalBuffer  = bufferPercentage * seekbarVideo.getMax();
                         int secondaryProgress  = totalBuffer / 100;
                         seekbarVideo.setSecondaryProgress(secondaryProgress);
                     }else{
                         seekbarVideo.setSecondaryProgress(0);
+                    }
+                    
+                    if(isNetUrl && vv.isPlaying()) {
+
+                        int duration = currentPosition - preCurrentPosition;
+                        if(duration < 500) {
+                            //卡
+                            ll_buffering.setVisibility(View.VISIBLE);
+                        }else{
+                            //不卡
+                            ll_buffering.setVisibility(View.GONE);
+                        }
+                        preCurrentPosition = currentPosition;
                     }
 
                     //循环发送消息
@@ -355,12 +374,12 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             MediaItem mediaItem = mediaItems.get(position);
             tvName.setText(mediaItem.getName());
             vv.setVideoPath(mediaItem.getData());
-            isNetUri = utils.isNetUrl(mediaItem.getData());
+            isNetUrl = utils.isNetUrl(mediaItem.getData());
         } else if (uri != null) {
             //设置播放的地址
             vv.setVideoURI(uri);
             tvName.setText(uri.toString());
-            isNetUri = utils.isNetUrl(uri.toString());
+            isNetUrl = utils.isNetUrl(uri.toString());
         }
         setButtonStatus();
     }
@@ -681,6 +700,26 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
             }
         });
+
+//        //设置监听卡
+//            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+//                vv.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+//                    @Override
+//                    public boolean onInfo(MediaPlayer mp, int what, int extra) {
+//                        switch (what){
+//                            //播放卡，拖拽卡
+//                            case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+//                                  ll_buffering.setVisibility(View.VISIBLE);
+//                                break;
+//                            //播放不卡了，拖拽不卡了
+//                            case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+//                                  ll_buffer.setVisibility(View.GONE);
+//                                break;
+//                        }
+//                        return false;
+//                    }
+//                });
+//        }
     }
 
     /**
@@ -706,7 +745,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         if (position >= 0) {
             //还是在列表范围内容
             MediaItem mediaItem = mediaItems.get(position);
-            isNetUri = utils.isNetUrl(mediaItem.getData());
+            isNetUrl = utils.isNetUrl(mediaItem.getData());
             vv.setVideoPath(mediaItem.getData());
             tvName.setText(mediaItem.getName());
 
@@ -720,7 +759,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         if (position < mediaItems.size()) {
             //还是在列表的范围的内容
             MediaItem mediaItem = mediaItems.get(position);
-            isNetUri =  utils.isNetUrl(mediaItem.getData());
+            isNetUrl =  utils.isNetUrl(mediaItem.getData());
             vv.setVideoPath(mediaItem.getData());
             tvName.setText(mediaItem.getName());
 
