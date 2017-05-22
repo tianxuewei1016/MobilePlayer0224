@@ -78,7 +78,7 @@ public class LocalVideoFragment extends BaseFragment {
             /**
              * 调用系统的播放器播放视频
              */
-//            Intent intent = new Intent(mContext,SystemVideoPlayerActivity.class);
+//            Intent intent = new Intent();
 //            intent.setDataAndType(Uri.parse(item.getData()), "video/*");
 //            startActivity(intent);
 

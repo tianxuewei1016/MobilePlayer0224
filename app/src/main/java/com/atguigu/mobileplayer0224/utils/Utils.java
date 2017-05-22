@@ -58,16 +58,16 @@ public class Utils {
      * @return
      */
     public boolean isNetUrl(String url) {
-        boolean result = false;
+        boolean isNetUri  = false;
         if (url != null) {
 
             if (url.toLowerCase().startsWith("http")
                     || url.toLowerCase().startsWith("rtsp")
                     || url.toLowerCase().startsWith("mms")) {
-                result = true;
+                isNetUri  = true;
             }
         }
-        return result;
+        return isNetUri ;
     }
 
 
@@ -88,7 +88,6 @@ public class Utils {
         String netSpeed = String.valueOf(speed) + " kb/s";
         return netSpeed;
     }
-
 
 }
 

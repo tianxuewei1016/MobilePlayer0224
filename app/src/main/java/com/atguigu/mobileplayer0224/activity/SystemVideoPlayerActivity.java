@@ -93,6 +93,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private Button btnNext;
     private Button btnSwichScreen;
     private Utils utils;
+
     private MyBroadCastReceiver receiver;
     /**
      * 视频列表的位置
@@ -125,6 +126,10 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      * 震动
      */
     private Vibrator vibrator;
+    /**
+     * 是否是网络的资源
+     */
+    private boolean isNetUri;
 
     /**
      * Find the Views in the layout<br />
@@ -203,6 +208,11 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER, 4000);
     }
 
+    /**
+     * 是否静音的方法
+     *
+     * @param isMute
+     */
     private void updateVoice(boolean isMute) {
         if (isMute) {
             //静音
@@ -250,7 +260,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     height = width * mVideoHeight / mVideoWidth;
                 }
                 vv.setVideoSize(width, height);
-
                 break;
         }
     }
@@ -289,6 +298,16 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
                     //得到系统的时间紧
                     tvSystetime.setText(getSystemTime());
+
+                    //设置视频缓存效果
+                    if(isNetUri) {
+                        int bufferPercentage = vv.getBufferPercentage();
+                        int totalBuffer  = bufferPercentage * seekbarVideo.getMax();
+                        int secondaryProgress  = totalBuffer / 100;
+                        seekbarVideo.setSecondaryProgress(secondaryProgress);
+                    }else{
+                        seekbarVideo.setSecondaryProgress(0);
+                    }
 
                     //循环发送消息
                     handler.sendEmptyMessageDelayed(PROGRESS, 1000);
@@ -331,22 +350,24 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     private void setData() {
-
         if (mediaItems != null && mediaItems.size() > 0) {
 
             MediaItem mediaItem = mediaItems.get(position);
             tvName.setText(mediaItem.getName());
             vv.setVideoPath(mediaItem.getData());
+            isNetUri = utils.isNetUrl(mediaItem.getData());
         } else if (uri != null) {
             //设置播放的地址
             vv.setVideoURI(uri);
+            tvName.setText(uri.toString());
+            isNetUri = utils.isNetUrl(uri.toString());
         }
         setButtonStatus();
     }
 
     private void getData() {
         //得到播放的地址
-        uri = getIntent().getData();
+        uri = getIntent().getData();//获取从外界传入的播放地址
         mediaItems = (ArrayList<MediaItem>) getIntent().getSerializableExtra("videolist");
         position = getIntent().getIntExtra("position", 0);
 
@@ -413,17 +434,22 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     /**
-     * 滑动的区域
+     * 滑动的最大的区域
      */
-    private int touchRang = 0;
+    private float touchRang = 0;
 
     /**
-     * 当按下的时候的音量
+     * 当按下的初始的音量
      */
     private int mVol;
-    private float startX;
     private float startY;
 
+    /**
+     * 按下屏幕改变右边声音和左边亮度
+     *
+     * @param event
+     * @return
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //把事件交给手势是比起解析
@@ -433,42 +459,44 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             //1.按下
             //按下的时候记录起始坐标，最大的滑动区域（屏幕的高），当前的音量
             startY = event.getY();
-            startX = event.getX();
-            touchRang = Math.min(screenHeight, screenWidth);//screeHeight
+            touchRang = Math.min(screenHeight, screenWidth);//返回的是screeHeight
+            //记录当前的声音
             mVol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
             //把消息移除
             handler.removeMessages(HIDE_MEDIACONTROLLER);
 
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             float endY = event.getY();
+            //滑动的距离
             float distanceY = startY - endY;
-            if (startX > screenWidth / 2) {
-                //屏幕滑动的距离
-                //滑动屏幕的距离 ： 总距离  = 改变的声音 ： 总声音
-                //改变的声音 = （滑动屏幕的距离 / 总距离)*总声音
-                float delta = (distanceY / touchRang) * maxVoice;
-                // 设置的声音  = 原来记录的 + 改变的声音
-                int volue = (int) Math.min(Math.max(mVol + delta, 0), maxVoice);
-                //判断
-                if (delta != 0) {
-                    updateVoiceProgress(volue);
-                }
-            } else {
-                //左边屏幕--改变亮度
-                final double FLING_MIN_DISTANCE = 0.5;
-                final double FLING_MIN_VELOCITY = 0.5;
-                if (startY - endY > FLING_MIN_DISTANCE
-                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
-                    Log.e("TAG", "up");
-                    setBrightness(20);
-                }
-                if (startY - endY < FLING_MIN_DISTANCE
-                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
-                    Log.e("TAG", "down");
-                    setBrightness(-20);
-                }
-
+//            if (startX > screenWidth / 2) {
+            //屏幕滑动的距离
+            //滑动屏幕的距离 ： 总距离  = 改变的声音 ： 总声音
+            //改变的声音 = （滑动屏幕的距离 / 总距离)*总声音
+            float delta = (distanceY / touchRang) * maxVoice;
+            //判断
+            if (delta != 0) {
+                // 最终的声音  = 原来记录的 + 改变的声音
+                int mVoice = (int) Math.min(Math.max(mVol + delta, 0), maxVoice);
+                updateVoiceProgress(mVoice);
             }
+//            } else {
+//                //左边屏幕--改变亮度
+//                final double FLING_MIN_DISTANCE = 0.5;
+//                final double FLING_MIN_VELOCITY = 0.5;
+//
+//                if (startY - endY > FLING_MIN_DISTANCE
+//                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+//                    Log.e("TAG", "up");
+//                    setBrightness(20);
+//                }
+//                if (startY - endY < FLING_MIN_DISTANCE
+//                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+//                    Log.e("TAG", "down");
+//                    setBrightness(-20);
+//                }
+//
+//            }
 
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER, 4000);
@@ -517,11 +545,13 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     }
 
+    /**
+     * 显示控制面板
+     */
     public void showMediaController() {
         isShowMediaController = true;
         llBottom.setVisibility(View.VISIBLE);
         llTop.setVisibility(View.VISIBLE);
-
     }
 
 
@@ -654,7 +684,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     /**
-     * 设置滑动改变声音
+     * 设置屏幕滑动改变声音
      *
      * @param progress
      */
@@ -676,6 +706,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         if (position >= 0) {
             //还是在列表范围内容
             MediaItem mediaItem = mediaItems.get(position);
+            isNetUri = utils.isNetUrl(mediaItem.getData());
             vv.setVideoPath(mediaItem.getData());
             tvName.setText(mediaItem.getName());
 
@@ -689,6 +720,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         if (position < mediaItems.size()) {
             //还是在列表的范围的内容
             MediaItem mediaItem = mediaItems.get(position);
+            isNetUri =  utils.isNetUrl(mediaItem.getData());
             vv.setVideoPath(mediaItem.getData());
             tvName.setText(mediaItem.getName());
 
@@ -741,22 +773,30 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         btnNext.setEnabled(b);
     }
 
+    /**
+     * 按手机上的按钮实现声音变大变小
+     *
+     * @param keyCode
+     * @param event
+     * @return
+     */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             //改变音量值
             currentVoice--;
             updateVoiceProgress(currentVoice);
             //移除消息
             handler.removeMessages(HIDE_MEDIACONTROLLER);
             //发消息
-            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER,4000);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER, 4000);
             return true;
-        }else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             currentVoice++;
             updateVoiceProgress(currentVoice);
             handler.removeMessages(HIDE_MEDIACONTROLLER);
-            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER,4000);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER, 4000);
+            //必须返回true,要不然就响应系统的了,设置false系统的也会出来
             return true;
         }
         return super.onKeyDown(keyCode, event);
