@@ -26,7 +26,6 @@ import org.json.JSONObject;
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
-
 import java.util.ArrayList;
 
 /**
@@ -44,7 +43,7 @@ public class NetVideoFragment extends BaseFragment {
     private TextView tv_nodata;
     private MaterialRefreshLayout refresh;
     /**
-     * 是否加载更多
+     * 是否加载更多,默认是false
      */
     private boolean isLoadMore = false;
 
@@ -76,20 +75,21 @@ public class NetVideoFragment extends BaseFragment {
             }
         });
         refresh.setMaterialRefreshListener(new MaterialRefreshListener() {
+            //下拉刷新
             @Override
             public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
                 isLoadMore = false;
                 getDataFromNet();
             }
-
+            //加载更多
             @Override
             public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
                 super.onRefreshLoadMore(materialRefreshLayout);
+                //这个字段不能放在下面
                 isLoadMore = true;
                 getDataFromNet();
             }
         });
-
         return view;
     }
 
@@ -97,7 +97,7 @@ public class NetVideoFragment extends BaseFragment {
     public void initData() {
         super.initData();
         Log.e("TAG", "NetVideoPager-initData");
-        String json = CacheUtils.getString(mContext, Constant.NET_URL);
+        String json = CacheUtils.getString(mContext, Constant.NET_WORK_VIDEO);
         if (!TextUtils.isEmpty(json)) {
             processData(json);
         }
@@ -117,9 +117,9 @@ public class NetVideoFragment extends BaseFragment {
                 Log.e("TAG", "xUtils联网成功==" + result);
                 CacheUtils.putString(mContext, Constant.NET_WORK_VIDEO, result);
                 processData(result);
-
+                //下拉刷新结束
                 if (!isLoadMore) {
-                    //完成刷新
+                    //结束下拉刷新
                     refresh.finishRefresh();
                 } else {
                     //把上拉隐藏
@@ -142,7 +142,6 @@ public class NetVideoFragment extends BaseFragment {
 
             }
         });
-
     }
 
     /**
@@ -169,7 +168,6 @@ public class NetVideoFragment extends BaseFragment {
             //刷新适配器
             adapter.notifyDataSetChanged();//getCount-->getView
         }
-
     }
 
     /**
@@ -179,7 +177,7 @@ public class NetVideoFragment extends BaseFragment {
      * @return
      */
     private ArrayList<MediaItem> parsedJson(String json) {
-        mediaItems = new ArrayList<>();
+        ArrayList<MediaItem> mediaItems = new ArrayList<>();
         try {
             JSONObject jsonObject = new JSONObject(json);
             JSONArray jsonArray = jsonObject.getJSONArray("trailers");
@@ -203,14 +201,11 @@ public class NetVideoFragment extends BaseFragment {
                 mediaItem.setImageUrl(coverImg);
                 int videoLength = jsonObjectItem.optInt("videoLength");
                 mediaItem.setDuration(videoLength);
-
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return mediaItems;
     }
-
-
 }
 

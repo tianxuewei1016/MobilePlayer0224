@@ -780,23 +780,23 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
         });
 
         //设置监听卡
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                vv.setOnInfoListener(new MediaPlayer.OnInfoListener() {
-                    @Override
-                    public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                        switch (what){
-                            //播放卡，拖拽卡
-                            case MediaPlayer.MEDIA_INFO_BUFFERING_START:
-                                  ll_buffering.setVisibility(View.VISIBLE);
-                                break;
-                            //播放不卡了，拖拽不卡了
-                            case MediaPlayer.MEDIA_INFO_BUFFERING_END:
-                                  ll_buffering.setVisibility(View.GONE);
-                                break;
-                        }
-                        return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            vv.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+                @Override
+                public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                    switch (what) {
+                        //播放卡，拖拽卡
+                        case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+                            ll_buffering.setVisibility(View.VISIBLE);
+                            break;
+                        //播放不卡了，拖拽不卡了
+                        case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+                            ll_buffering.setVisibility(View.GONE);
+                            break;
                     }
-                });
+                    return false;
+                }
+            });
         }
     }
 

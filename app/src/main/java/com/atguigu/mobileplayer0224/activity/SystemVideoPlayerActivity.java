@@ -497,6 +497,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      */
     private int mVol;
     private float startY;
+    private float startX;
 
     /**
      * 按下屏幕改变右边声音和左边亮度
@@ -506,13 +507,14 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
         //把事件交给手势是比起解析
         detector.onTouchEvent(event);
-        super.onTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             //1.按下
             //按下的时候记录起始坐标，最大的滑动区域（屏幕的高），当前的音量
             startY = event.getY();
+            startX = event.getX();
             touchRang = Math.min(screenHeight, screenWidth);//返回的是screeHeight
             //记录当前的声音
             mVol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -523,35 +525,27 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             float endY = event.getY();
             //滑动的距离
             float distanceY = startY - endY;
-//            if (startX > screenWidth / 2) {
-            //屏幕滑动的距离
-            //滑动屏幕的距离 ： 总距离  = 改变的声音 ： 总声音
-            //改变的声音 = （滑动屏幕的距离 / 总距离)*总声音
-            float delta = (distanceY / touchRang) * maxVoice;
-            //判断
-            if (delta != 0) {
-                // 最终的声音  = 原来记录的 + 改变的声音
-                int mVoice = (int) Math.min(Math.max(mVol + delta, 0), maxVoice);
-                updateVoiceProgress(mVoice);
-            }
-//            } else {
-//                //左边屏幕--改变亮度
-//                final double FLING_MIN_DISTANCE = 0.5;
-//                final double FLING_MIN_VELOCITY = 0.5;
-//
-//                if (startY - endY > FLING_MIN_DISTANCE
-//                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
-//                    Log.e("TAG", "up");
-//                    setBrightness(20);
-//                }
-//                if (startY - endY < FLING_MIN_DISTANCE
-//                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
-//                    Log.e("TAG", "down");
-//                    setBrightness(-20);
-//                }
-//
-//            }
 
+            if (startX > screenWidth / 2) {
+                float delta = (distanceY / touchRang) * maxVoice;
+                int mVoice = (int) Math.min(Math.max(mVol + delta, 0), maxVoice);
+                if (delta != 0) {
+                    // 最终的声音  = 原来记录的 + 改变的声音
+                    updateVoiceProgress(mVoice);
+                }
+            } else {
+                //左边屏幕--改变亮度
+                final double FLING_MIN_DISTANCE = 0.5;
+                final double FLING_MIN_VELOCITY = 0.5;
+                if (startY - endY > FLING_MIN_DISTANCE
+                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                    setBrightness(20);
+                }
+                if (startY - endY < FLING_MIN_DISTANCE
+                        && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                    setBrightness(-20);
+                }
+            }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER, 4000);
         }
@@ -559,9 +553,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     /*
-    *
-    * 设置屏幕亮度 lp = 0 全暗 ，lp= -1,根据系统设置， lp = 1; 最亮
-    */
+     *
+     * 设置屏幕亮度 lp = 0 全暗 ，lp= -1,根据系统设置， lp = 1; 最亮
+     */
     public void setBrightness(float brightness) {
         WindowManager.LayoutParams lp = getWindow().getAttributes();
         // if (lp.screenBrightness <= 0.1) {
