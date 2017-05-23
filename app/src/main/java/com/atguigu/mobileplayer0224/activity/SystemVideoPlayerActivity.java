@@ -37,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-//一般有上下左右的用相对布局或者帧布局
+//一般有上下左右的用相对布局或者帧布局,这是系统播放器
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     /**
      * 视频的本质是连续的画面,在加上声音,形成电影

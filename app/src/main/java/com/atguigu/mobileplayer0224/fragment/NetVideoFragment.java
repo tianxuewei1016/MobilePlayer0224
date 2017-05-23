@@ -115,7 +115,7 @@ public class NetVideoFragment extends BaseFragment {
             public void onSuccess(String result) {
 
                 Log.e("TAG", "xUtils联网成功==" + result);
-                CacheUtils.putString(mContext,Constant.NET_WORK_VIDEO, result);
+                CacheUtils.putString(mContext, Constant.NET_WORK_VIDEO, result);
                 processData(result);
 
                 if (!isLoadMore) {
@@ -179,7 +179,7 @@ public class NetVideoFragment extends BaseFragment {
      * @return
      */
     private ArrayList<MediaItem> parsedJson(String json) {
-        ArrayList<MediaItem> mediaItems = new ArrayList<>();
+        mediaItems = new ArrayList<>();
         try {
             JSONObject jsonObject = new JSONObject(json);
             JSONArray jsonArray = jsonObject.getJSONArray("trailers");
@@ -190,6 +190,7 @@ public class NetVideoFragment extends BaseFragment {
                 MediaItem mediaItem = new MediaItem();
                 mediaItems.add(mediaItem);//添加到集合中
                 JSONObject jsonObjectItem = (JSONObject) jsonArray.get(i);
+
                 String name = jsonObjectItem.optString("movieName");
                 mediaItem.setName(name);
                 String desc = jsonObjectItem.optString("videoTitle");
