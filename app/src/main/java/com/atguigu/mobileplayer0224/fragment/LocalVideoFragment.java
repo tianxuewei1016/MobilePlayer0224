@@ -135,10 +135,7 @@ public class LocalVideoFragment extends BaseFragment {
                         //里面也可以是3
                         String data = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
                         Log.e("TAG", "name==" + name + ",duration==" + duration + ",data===" + data);
-
                         mediaItems.add(new MediaItem(name, duration, size, data));
-
-
                     }
 
                     cursor.close();

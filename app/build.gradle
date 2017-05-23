@@ -30,4 +30,6 @@ dependencies {
     compile project(':vitamio')
     compile 'org.xutils:xutils:3.5.0'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.cjj.materialrefeshlayout:library:1.3.0'
+    compile files('libs/glide-3.7.0.jar')
 }

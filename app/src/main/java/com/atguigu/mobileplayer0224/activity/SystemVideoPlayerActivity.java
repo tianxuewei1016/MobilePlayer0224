@@ -235,7 +235,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     public void onClick(DialogInterface dialog, int which) {
                         startVitamioPlayer();
                     }
-                }).setNegativeButton("取消",null)
+                }).setNegativeButton("取消", null)
                 .show();
     }
 
@@ -678,10 +678,10 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 //                        Toast.makeText(SystemVideoPlayerActivity.this, "拖动完成", Toast.LENGTH_SHORT).show();
 //                    }
 //                });
-                if(vv.isPlaying()) {
+                if (vv.isPlaying()) {
                     //设置暂停
                     btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
-                }else {
+                } else {
                     btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
                 }
             }
@@ -697,7 +697,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 //2.播放过程中网络中断,导致网络异常--重新播放--三次重试
 
                 //3.文件中间部分损毁或者文件不完整--把下载做好
-                return false;
+                return true;
             }
         });
 
@@ -780,17 +780,17 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     private void startVitamioPlayer() {
-        if(vv != null){
+        if (vv != null) {
             vv.stopPlayback();
         }
         Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
-        if(mediaItems != null && mediaItems.size() >0){
+        if (mediaItems != null && mediaItems.size() > 0) {
             Bundle bunlder = new Bundle();
-            bunlder.putSerializable("videolist",mediaItems);
-            intent.putExtra("position",position);
+            bunlder.putSerializable("videolist", mediaItems);
+            intent.putExtra("position", position);
             //放入Bundler
             intent.putExtras(bunlder);
-        }else if(uri != null){
+        } else if (uri != null) {
             intent.setData(uri);
         }
         startActivity(intent);
@@ -815,9 +815,12 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         }
     }
 
+    /**
+     * 上一个视频的方法,注意必须是大于等于0
+     */
     private void setPreVideo() {
         position--;
-        if (position > 0) {
+        if (position >= 0) {
             //还是在列表范围内容
             MediaItem mediaItem = mediaItems.get(position);
             isNetUrl = utils.isNetUrl(mediaItem.getData());

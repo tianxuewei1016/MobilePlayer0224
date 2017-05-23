@@ -26,6 +26,9 @@ public class MediaItem implements Serializable{
 
     String heightUrl;
 
+    public MediaItem() {
+    }
+
     public MediaItem(String name, long duration, long size, String data) {
         this.name = name;
         this.duration = duration;

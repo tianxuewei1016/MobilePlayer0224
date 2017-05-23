@@ -8,13 +8,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.atguigu.mobileplayer0224.R;
-import com.atguigu.mobileplayer0224.bean.MoveInfo;
-import com.atguigu.mobileplayer0224.utils.Utils;
+import com.atguigu.mobileplayer0224.bean.MediaItem;
 
+import org.xutils.common.util.DensityUtil;
 import org.xutils.image.ImageOptions;
 import org.xutils.x;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 作者：田学伟 on 2017/5/22 17:58
@@ -25,30 +25,36 @@ import java.util.List;
 public class NetVideoAdapter extends BaseAdapter{
 
     private final Context mContext;
-    private List<MoveInfo.TrailersBean> datas;
-    private Utils utils;
+    private final ArrayList<MediaItem> datas;
+
     private ImageOptions imageOptions;
 
-    public NetVideoAdapter(Context mContext, List<MoveInfo.TrailersBean> datas) {
+    public NetVideoAdapter(Context mContext, ArrayList<MediaItem> mediaItems) {
         this.mContext = mContext;
-        this.datas = datas;
-        utils = new Utils();
+        this.datas = mediaItems;
+
+        //XUtils请求图片
         imageOptions = new ImageOptions.Builder()
-                .setIgnoreGif(false)//是否忽略gif图。false表示不忽略。不写这句，默认是true
+                .setSize(DensityUtil.dip2px(120), DensityUtil.dip2px(120))
+                .setRadius(DensityUtil.dip2px(5))
+                // 如果ImageView的大小不是定义为wrap_content, 不要crop.
+                .setCrop(true) // 很多时候设置了合适的scaleType也不需要它.
+                // 加载中或错误图片的ScaleType
+                //.setPlaceholderScaleType(ImageView.ScaleType.MATRIX)
                 .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
-                .setFailureDrawableId(R.drawable.video_default)
-                .setLoadingDrawableId(R.drawable.video_default)
+                .setLoadingDrawableId(R.drawable.video_default)//加载过程中的默认图片
+                .setFailureDrawableId(R.drawable.video_default)//就挨着出错的图片
                 .build();
     }
 
     @Override
     public int getCount() {
-        return datas == null ? 0 : datas.size();
+        return datas.size();
     }
 
     @Override
-    public MoveInfo.TrailersBean getItem(int position) {
-        return datas.get(position);
+    public Object getItem(int position) {
+        return null;
     }
 
     @Override
@@ -59,33 +65,53 @@ public class NetVideoAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
-        if(convertView == null){
+        if(convertView==null){
             convertView = View.inflate(mContext, R.layout.item_net_video,null);
             viewHolder = new ViewHolder();
-            viewHolder.tv_duration = (TextView) convertView.findViewById(R.id.tv_duration);
             viewHolder.iv_icon = (ImageView) convertView.findViewById(R.id.iv_icon);
             viewHolder.tv_name = (TextView) convertView.findViewById(R.id.tv_name);
+            viewHolder.tv_duration = (TextView) convertView.findViewById(R.id.tv_duration);
             viewHolder.tv_size = (TextView) convertView.findViewById(R.id.tv_size);
+            //设置tag
             convertView.setTag(viewHolder);
-        }else {
+        }else{
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
         //根据位置得到对应的数据
-        MoveInfo.TrailersBean trailersBean = datas.get(position);
-        viewHolder.tv_name.setText(trailersBean.getMovieName());
-        viewHolder.tv_size.setText(trailersBean.getVideoLength()+"秒");
-        viewHolder.tv_duration.setText(trailersBean.getVideoTitle());
-        x.image().bind(viewHolder.iv_icon, trailersBean.getCoverImg(),imageOptions);
+        MediaItem mediaItem = datas.get(position);
+        viewHolder.tv_name.setText(mediaItem.getName());//设置名称
+        //设置文件大小
+        viewHolder.tv_size.setText(mediaItem.getDuration()+"秒");
+        //设置时间
+        viewHolder.tv_duration.setText(mediaItem.getDesc());
+
+        //s使用xUtils3请求图片
+        x.image().bind(viewHolder.iv_icon,mediaItem.getImageUrl(),imageOptions);
+//        //使用Glide或者Picasso请求图片
+////        Picasso.with(mContext)
+////                .load(mediaItem.getImageUrl())
+////                .placeholder(R.drawable.video_default)
+////                .error(R.drawable.video_default)
+////                .into(viewHolder.iv_icon);
+
+
+//        Glide.with(mContext)
+//                .load(Constant.NET_WORK_VIDEO+mediaItem.getImageUrl())
+//                .placeholder(R.drawable.video_default)
+//                .error(R.drawable.video_default)
+//                .into(viewHolder.iv_icon);
+
 
 
         return convertView;
     }
 
     static class ViewHolder{
-        ImageView iv_icon;
         TextView tv_name;
         TextView tv_duration;
         TextView tv_size;
+        ImageView iv_icon;
+
     }
 }
