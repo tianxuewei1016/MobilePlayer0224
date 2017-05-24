@@ -102,6 +102,8 @@ public class MusicPlayService extends Service {
      */
     private MediaItem mediaItem;
 
+    public static final String OPEN_COMPLETE = "com.atguigu.mobileplayer.OPEN_COMPLETE";
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -202,8 +204,19 @@ public class MusicPlayService extends Service {
 
         @Override
         public void onPrepared(MediaPlayer mp) {
+            //发广播
+            notifyChange(OPEN_COMPLETE);
             start();
         }
+    }
+
+    /**
+     * 发送广播
+     * @param action
+     */
+    private void notifyChange(String action) {
+        Intent intent = new Intent(action);
+        sendBroadcast(intent);
     }
 
     class MyOnCompletionListener implements MediaPlayer.OnCompletionListener {
@@ -243,7 +256,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private String getArtistName() {
-        return "";
+        return mediaItem.getArtist();
     }
 
     /**
@@ -252,7 +265,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private String getAudioName() {
-        return "";
+        return mediaItem.getName();
     }
 
 
@@ -271,7 +284,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private int getDuration() {
-        return 0;
+        return mediaPlayer.getDuration();
     }
 
 
@@ -281,7 +294,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private int getCurrentPosition() {
-        return 0;
+        return mediaPlayer.getCurrentPosition();
     }
 
     /**

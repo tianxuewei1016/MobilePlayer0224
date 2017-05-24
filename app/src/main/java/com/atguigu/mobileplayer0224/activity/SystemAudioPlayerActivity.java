@@ -1,12 +1,16 @@
 package com.atguigu.mobileplayer0224.activity;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -20,6 +24,7 @@ import android.widget.TextView;
 import com.atguigu.mobileplayer0224.IMusicPlayService;
 import com.atguigu.mobileplayer0224.R;
 import com.atguigu.mobileplayer0224.service.MusicPlayService;
+import com.atguigu.mobileplayer0224.utils.Utils;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -51,9 +56,39 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     Button btnLyric;
     @InjectView(R.id.ll_bottom)
     LinearLayout llBottom;
+
     //这个就是IMusicPlayService.stub的实例
     private IMusicPlayService service;
     private int position;
+    private Utils utils;
+    private MyReceiver receiver;
+
+    private final static int PROGRESS = 0;
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case PROGRESS:
+                    try {
+                        //获取当前的进度
+                        int currentPosition = service.getCurrentPosition();
+                        seekbarAudio.setProgress(currentPosition);
+
+                        //设置更新的时间
+                        tvTime.setText(utils.stringForTime(currentPosition)+"/"+utils.stringForTime(service.getDuration()));
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
+                    //每秒钟刷新一次
+                    removeMessages(PROGRESS);
+                    sendEmptyMessageDelayed(PROGRESS, 1000);
+                    break;
+            }
+        }
+    };
 
     private ServiceConnection conon = new ServiceConnection() {
         /**
@@ -64,7 +99,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
             //这个就是stub，stub包含很多方法，这些方法调用服务的方法
-            service =  IMusicPlayService.Stub.asInterface(iBinder);
+            service = IMusicPlayService.Stub.asInterface(iBinder);
             if (service != null) {
                 try {
                     service.openAudio(position);//打开播放的资源
@@ -90,6 +125,8 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_system_audio_player);
         ButterKnife.inject(this);
 
+        initData();
+
         ivIcon.setBackgroundResource(R.drawable.animation_bg);
         AnimationDrawable background = (AnimationDrawable) ivIcon.getBackground();
         background.start();
@@ -97,8 +134,40 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         startAndBindService();
     }
 
+    private void initData() {
+        //注册广播
+        receiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(MusicPlayService.OPEN_COMPLETE);
+        registerReceiver(receiver,intentFilter);
+
+        utils = new Utils();
+    }
+
+    class MyReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //主线程中
+            setViewData();
+        }
+    }
+
+    private void setViewData() {
+        try {
+            tvArtist.setText(service.getArtistName());
+            tvAudioname.setText(service.getAudioName());
+            int duration = service.getDuration();
+            seekbarAudio.setMax(duration);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        //发送更新的进度
+        handler.sendEmptyMessage(PROGRESS);
+    }
+
     private void getData() {
-        position = getIntent().getIntExtra("position",0);
+        position = getIntent().getIntExtra("position", 0);
     }
 
     //启动服务
@@ -143,9 +212,14 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if(conon != null) {
+        if (conon != null) {
             unbindService(conon);
             conon = null;
+        }
+        //广播取消注册
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+            receiver = null;
         }
         super.onDestroy();
     }
