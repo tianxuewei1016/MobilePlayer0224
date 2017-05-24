@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
+
 import java.util.ArrayList;
 
 /**
@@ -35,7 +36,12 @@ import java.util.ArrayList;
  */
 
 public class NetVideoFragment extends BaseFragment {
-
+    /**
+     * 缓存文本的思路:
+     * 1.当联网成功的时候缓存请求到的数据.
+     * 2.在没有数据或者请求失败之前先加载缓存的数据
+     * 3.正常的解析和显示(设置适配器)
+     */
     private ArrayList<MediaItem> mediaItems;
     private NetVideoAdapter adapter;
 
@@ -81,6 +87,7 @@ public class NetVideoFragment extends BaseFragment {
                 isLoadMore = false;
                 getDataFromNet();
             }
+
             //加载更多
             @Override
             public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
@@ -97,9 +104,12 @@ public class NetVideoFragment extends BaseFragment {
     public void initData() {
         super.initData();
         Log.e("TAG", "NetVideoPager-initData");
+        //在联网之前直接取缓存数据
         String json = CacheUtils.getString(mContext, Constant.NET_WORK_VIDEO);
         if (!TextUtils.isEmpty(json)) {
+            //解析缓存的数据
             processData(json);
+            Log.e("TAG", "解析缓存的数据=="+json);
         }
         getDataFromNet();
     }
