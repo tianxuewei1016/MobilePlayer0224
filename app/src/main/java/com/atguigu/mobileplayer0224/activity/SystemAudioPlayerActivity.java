@@ -196,6 +196,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
 
     private void setViewData() {
         try {
+            setButtonImage();
             tvArtist.setText(service.getArtistName());
             tvAudioname.setText(service.getAudioName());
             int duration = service.getDuration();
@@ -231,7 +232,11 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
                 setPlayMode();
                 break;
             case R.id.btn_pre:
-
+                try {
+                    service.pre();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_start_pause:
                 try {
@@ -251,6 +256,11 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.btn_next:
+                try {
+                    service.next();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_lyric:
                 break;
