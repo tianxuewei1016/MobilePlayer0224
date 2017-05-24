@@ -96,7 +96,6 @@ public class LocalAudioFragment extends BaseFragment {
             @Override
             public void run() {
                 super.run();
-
                 //初始化集合
                 mediaItems = new ArrayList<MediaItem>();
                 ContentResolver resolver = mContext.getContentResolver();
