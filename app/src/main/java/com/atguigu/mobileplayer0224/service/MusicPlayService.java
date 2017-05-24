@@ -94,6 +94,16 @@ public class MusicPlayService extends Service {
             return mediaPlayer.isPlaying();
         }
 
+        @Override
+        public int getPlaymode() throws RemoteException {
+            return service.getPlaymode();
+        }
+
+        @Override
+        public void setPlaymode(int playmode) throws RemoteException {
+            service.setPlaymode(playmode);
+        }
+
     };
 
     private ArrayList<MediaItem> mediaItems;
@@ -106,8 +116,26 @@ public class MusicPlayService extends Service {
      * 代表一个音频的信息类
      */
     private MediaItem mediaItem;
-
+    /**
+     * 通知服务管理
+     */
     private NotificationManager nm;
+    /**
+     * 顺序播放
+     */
+    public static final int REPEAT_NORMAL = 1;
+    /**
+     * 单曲循环播放
+     */
+    public static final int REPEAT_SINGLE = 2;
+    /**
+     * 全部循环播放
+     */
+    public static final int REPEAT_ALL = 3;
+    /**
+     * 播放模式
+     */
+    private int playmode = REPEAT_NORMAL;
 
     public static final String OPEN_COMPLETE = "com.atguigu.mobileplayer.OPEN_COMPLETE";
 
@@ -252,15 +280,15 @@ public class MusicPlayService extends Service {
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         Intent intent = new Intent(this, SystemAudioPlayerActivity.class);
-        intent.putExtra("notification",true);
-        PendingIntent pi = PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+        intent.putExtra("notification", true);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new Notification.Builder(this)
                 .setSmallIcon(R.drawable.notification_music_playing)
                 .setContentTitle("321音乐")
-                .setContentText("正在播放"+getAudioName())
+                .setContentText("正在播放" + getAudioName())
                 .setContentIntent(pi)
                 .build();
-        nm.notify(1,notification);
+        nm.notify(1, notification);
 
     }
 
@@ -340,4 +368,18 @@ public class MusicPlayService extends Service {
      */
     private void pre() {
     }
+
+    /**
+     * 得到播放模式
+     *
+     * @return
+     */
+    public int getPlaymode() {
+        return playmode;
+    }
+
+    public void setPlaymode(int playmode) {
+        this.playmode = playmode;
+    }
+
 }
