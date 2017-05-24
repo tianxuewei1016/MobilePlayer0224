@@ -4,21 +4,24 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.atguigu.mobileplayer0224.IMusicPlayService;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MusicPlayService extends Service {
-
+    //.aidl文件生成的类
     private IMusicPlayService.Stub stub = new IMusicPlayService.Stub() {
-
+        //得到服务实例的引用
         MusicPlayService service = MusicPlayService.this;
 
         @Override
@@ -80,13 +83,29 @@ public class MusicPlayService extends Service {
         public void pre() throws RemoteException {
             service.pre();
         }
+
+        @Override
+        public boolean isPlaying() throws RemoteException {
+            return mediaPlayer.isPlaying();
+        }
+
     };
 
     private ArrayList<MediaItem> mediaItems;
+    private MediaPlayer mediaPlayer;
+    /**
+     * 音频列表的下标的位置
+     */
+    private int position;
+    /**
+     * 代表一个音频的信息类
+     */
+    private MediaItem mediaItem;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.e("TAG", "MusicPlayService--onCreate");
         //加载列表数据
         getData();
     }
@@ -133,8 +152,7 @@ public class MusicPlayService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return stub;
     }
 
     /**
@@ -144,20 +162,79 @@ public class MusicPlayService extends Service {
      * +
      */
     private void openAudio(int position) {
+        this.position = position;
+        if (mediaItems != null && mediaItems.size() > 0) {
 
+            if (position < mediaItems.size()) {
+                mediaItem = mediaItems.get(position);
+
+                //如果不为空释放之前的播放音频的资源
+                if (mediaPlayer != null) {
+                    mediaPlayer.reset();
+                    mediaPlayer = null;
+                }
+                try {
+                    mediaPlayer = new MediaPlayer();
+                    //设置播放地址
+                    mediaPlayer.setDataSource(mediaItem.getData());
+                    //设置最基本的三个监听：准备完成，播放出错，播放完成
+                    mediaPlayer.setOnPreparedListener(new MyOnPreparedListener());
+                    mediaPlayer.setOnErrorListener(new MyOnErrorListener());
+                    mediaPlayer.setOnCompletionListener(new MyOnCompletionListener());
+                    //准备
+                    mediaPlayer.prepareAsync();
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else {
+            Toast.makeText(MusicPlayService.this, "音频还没有加载完成", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * 准备好的时候
+     */
+    class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
+
+        @Override
+        public void onPrepared(MediaPlayer mp) {
+            start();
+        }
+    }
+
+    class MyOnCompletionListener implements MediaPlayer.OnCompletionListener {
+
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            next();
+        }
+    }
+
+    class MyOnErrorListener implements MediaPlayer.OnErrorListener {
+
+        @Override
+        public boolean onError(MediaPlayer mp, int what, int extra) {
+            next();
+            return true;
+        }
     }
 
     /**
      * 播放音频
      */
     private void start() {
+        mediaPlayer.start();
     }
 
     /**
      * 暂停音频
      */
     private void pause() {
-
+        mediaPlayer.pause();
     }
 
     /**
