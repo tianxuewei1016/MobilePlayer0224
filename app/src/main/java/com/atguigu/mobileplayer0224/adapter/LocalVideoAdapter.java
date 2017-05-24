@@ -18,7 +18,7 @@ import java.util.ArrayList;
 /**
  * 作者：田学伟 on 2017/5/19 15:13
  * QQ：93226539
- * 作用：
+ * 作用：本地视频和本地音乐的通用适配器
  */
 
 public class LocalVideoAdapter extends BaseAdapter {
@@ -72,6 +72,10 @@ public class LocalVideoAdapter extends BaseAdapter {
         //设置时间
         viewHolder.tv_duration.setText(utils.stringForTime((int) mediaItem.getDuration()));
 
+        if(!isVideo) {
+            //音频
+            viewHolder.iv_icon.setImageResource(R.drawable.music_default_bg);
+        }
         return convertView;
     }
 

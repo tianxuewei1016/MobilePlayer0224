@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -135,7 +134,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     /**
      * 震动
      */
-    private Vibrator vibrator;
+//    private Vibrator vibrator;
     /**
      * 是否是网络的资源
      */
@@ -564,14 +563,14 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         lp.screenBrightness = lp.screenBrightness + brightness / 255.0f;
         if (lp.screenBrightness > 1) {
             lp.screenBrightness = 1;
-            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+           // vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             long[] pattern = {10, 200}; // OFF/ON/OFF/ON...
-            vibrator.vibrate(pattern, -1);
+           // vibrator.vibrate(pattern, -1);
         } else if (lp.screenBrightness < 0.2) {
             lp.screenBrightness = (float) 0.2;
-            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+           // vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             long[] pattern = {10, 200}; // OFF/ON/OFF/ON...
-            vibrator.vibrate(pattern, -1);
+           // vibrator.vibrate(pattern, -1);
         }
         getWindow().setAttributes(lp);
     }

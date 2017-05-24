@@ -37,8 +37,6 @@
             android:label="@string/plyaer_name"
             android:screenOrientation="landscape"
             android:theme="@style/myScreen">
-
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -49,6 +47,7 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="video/*" />
@@ -67,7 +66,6 @@
                 <data android:mimeType="video/3gpp" />
                 <data android:mimeType="video/3gpp2" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -288,7 +286,8 @@
             android:name=".activity.VitamioVideoPlayerActivity"
             android:launchMode="singleTask"
             android:screenOrientation="landscape"
-            android:theme="@style/noAnimation_Theme"></activity>
+            android:theme="@style/noAnimation_Theme" />
+        <activity android:name=".activity.SystemAudioPlayerActivity"></activity>
     </application>
 
 </manifest>
