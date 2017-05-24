@@ -63,6 +63,8 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     private Utils utils;
     private MyReceiver receiver;
 
+    private boolean notification;
+
     private final static int PROGRESS = 0;
 
     private Handler handler = new Handler() {
@@ -102,7 +104,13 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
             service = IMusicPlayService.Stub.asInterface(iBinder);
             if (service != null) {
                 try {
-                    service.openAudio(position);//打开播放的资源
+//                    service.openAudio(position);//打开播放的资源
+                    if (notification) {
+                        //什么不用做
+                        setViewData();
+                    } else {
+                        service.openAudio(position);//打开播放第0个音频
+                    }
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -200,7 +208,11 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     }
 
     private void getData() {
-        position = getIntent().getIntExtra("position", 0);
+//        position = getIntent().getIntExtra("position", 0);
+        notification = getIntent().getBooleanExtra("notification",false);
+        if(!notification) {
+            position = getIntent().getIntExtra("position", 0);
+        }
     }
 
     //启动服务

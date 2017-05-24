@@ -1,5 +1,8 @@
 package com.atguigu.mobileplayer0224.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -13,6 +16,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.atguigu.mobileplayer0224.IMusicPlayService;
+import com.atguigu.mobileplayer0224.R;
+import com.atguigu.mobileplayer0224.activity.SystemAudioPlayerActivity;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
 
 import java.io.IOException;
@@ -101,6 +106,8 @@ public class MusicPlayService extends Service {
      * 代表一个音频的信息类
      */
     private MediaItem mediaItem;
+
+    private NotificationManager nm;
 
     public static final String OPEN_COMPLETE = "com.atguigu.mobileplayer.OPEN_COMPLETE";
 
@@ -242,6 +249,19 @@ public class MusicPlayService extends Service {
      */
     private void start() {
         mediaPlayer.start();
+        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        Intent intent = new Intent(this, SystemAudioPlayerActivity.class);
+        intent.putExtra("notification",true);
+        PendingIntent pi = PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = new Notification.Builder(this)
+                .setSmallIcon(R.drawable.notification_music_playing)
+                .setContentTitle("321音乐")
+                .setContentText("正在播放"+getAudioName())
+                .setContentIntent(pi)
+                .build();
+        nm.notify(1,notification);
+
     }
 
     /**
@@ -249,6 +269,8 @@ public class MusicPlayService extends Service {
      */
     private void pause() {
         mediaPlayer.pause();
+        //取消通知
+        nm.cancel(1);
     }
 
     /**
