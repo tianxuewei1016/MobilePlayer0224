@@ -77,7 +77,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
                         seekbarAudio.setProgress(currentPosition);
 
                         //设置更新的时间
-                        tvTime.setText(utils.stringForTime(currentPosition)+"/"+utils.stringForTime(service.getDuration()));
+                        tvTime.setText(utils.stringForTime(currentPosition) + "/" + utils.stringForTime(service.getDuration()));
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -126,6 +126,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         ButterKnife.inject(this);
 
         initData();
+        setListener();
 
         ivIcon.setBackgroundResource(R.drawable.animation_bg);
         AnimationDrawable background = (AnimationDrawable) ivIcon.getBackground();
@@ -134,12 +135,44 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         startAndBindService();
     }
 
+    /**
+     * 设置监听的方法
+     */
+    private void setListener() {
+        //设置监听拖动视频
+        seekbarAudio.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
+    }
+
+    class MyOnSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            if (fromUser) {
+                try {
+                    service.seekTo(progress);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+    }
+
     private void initData() {
         //注册广播
         receiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MusicPlayService.OPEN_COMPLETE);
-        registerReceiver(receiver,intentFilter);
+        registerReceiver(receiver, intentFilter);
 
         utils = new Utils();
     }
