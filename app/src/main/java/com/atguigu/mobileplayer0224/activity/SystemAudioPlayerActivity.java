@@ -26,6 +26,7 @@ import com.atguigu.mobileplayer0224.R;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
 import com.atguigu.mobileplayer0224.service.MusicPlayService;
 import com.atguigu.mobileplayer0224.utils.Utils;
+import com.atguigu.mobileplayer0224.view.LyricShowView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -61,6 +62,8 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     Button btnLyric;
     @InjectView(R.id.ll_bottom)
     LinearLayout llBottom;
+    @InjectView(R.id.lyric_show_view)
+    LyricShowView lyricShowView;
 
     //这个就是IMusicPlayService.stub的实例
     private IMusicPlayService service;
@@ -71,12 +74,29 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     private boolean notification;
 
     private final static int PROGRESS = 0;
+    /**
+     * 显示歌词
+     */
+    private static final int SHOW_LYRIC = 1;
 
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
+                case SHOW_LYRIC:
+                    try {
+                        int currentPosition = service.getCurrentPosition();
+
+                        //调用歌词显示空间的方法
+                        lyricShowView.LyricShowView(currentPosition);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
+                    removeMessages(SHOW_LYRIC);
+                    sendEmptyMessage(SHOW_LYRIC);
+                    break;
                 case PROGRESS:
                     try {
                         //获取当前的进度
@@ -218,6 +238,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         }
         //发送更新的进度
         handler.sendEmptyMessage(PROGRESS);
+        handler.sendEmptyMessage(SHOW_LYRIC);
     }
 
     private void getData() {
@@ -330,6 +351,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
 
         //2.取消注册
         EventBus.getDefault().unregister(this);
+        if(handler!=null) {
+            handler.removeCallbacksAndMessages(null);
+        }
         super.onDestroy();
     }
 }

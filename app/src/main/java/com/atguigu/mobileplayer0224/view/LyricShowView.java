@@ -18,7 +18,7 @@ import java.util.ArrayList;
  */
 
 public class LyricShowView extends TextView {
-    private Paint paint;
+    private Paint paintGreen;
     private int width;
     private int height;
     private ArrayList<Lyric> lyrics;
@@ -28,6 +28,7 @@ public class LyricShowView extends TextView {
      */
     private int index;
     private float textHeight = 20;
+    private int currentPosition;
 
     public LyricShowView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -42,15 +43,15 @@ public class LyricShowView extends TextView {
     }
 
     private void initView() {
-        paint = new Paint();
-        paint.setColor(Color.GREEN);
-        paint.setAntiAlias(true);
-        paint.setTextSize(16);
+        paintGreen = new Paint();
+        paintGreen.setColor(Color.GREEN);
+        paintGreen.setAntiAlias(true);
+        paintGreen.setTextSize(16);
         //设置居中
-        paint.setTextAlign(Paint.Align.CENTER);
+        paintGreen.setTextAlign(Paint.Align.CENTER);
 
         paintWhile = new Paint();
-        paintWhile.setColor(Color.GREEN);
+        paintWhile.setColor(Color.WHITE);
         paintWhile.setAntiAlias(true);
         paintWhile.setTextSize(16);
         //设置居中
@@ -83,7 +84,7 @@ public class LyricShowView extends TextView {
         if (lyrics != null && lyrics.size() > 0) {
             //才有歌词
             String currentContent = lyrics.get(index).getContent();
-            canvas.drawText(currentContent, width / 2, height / 2, paint);
+            canvas.drawText(currentContent, width / 2, height / 2, paintGreen);
 
             //得到中间距离的坐标
             float tempY = height / 2;
@@ -113,7 +114,30 @@ public class LyricShowView extends TextView {
                 canvas.drawText(nextContent, width / 2, tempY, paintWhile);
             }
         } else {
-            canvas.drawText("没有找到歌词..", width / 2, height / 2, paint);
+            canvas.drawText("没有找到歌词..", width / 2, height / 2, paintGreen);
         }
+    }
+
+    /**
+     * 根据播放的位置查找或者计算出当前该高亮显示的是哪一句
+     * 并且得到这一句对应的相关信息
+     *
+     * @param currentPosition
+     */
+    public void LyricShowView(int currentPosition) {
+        this.currentPosition = currentPosition;
+        if (lyrics == null || lyrics.size() == 0)
+            return;
+        for (int i = 1; i < lyrics.size(); i++) {
+            if (currentPosition < lyrics.get(i).getTimePoint()) {
+                int tempIndex = i - 1;
+                if (currentPosition >= lyrics.get(tempIndex).getTimePoint()) {
+                    //中间高亮显示的那一句
+                    index = tempIndex;
+                }
+            }
+        }
+        //什么方法导致OnDraw
+        invalidate();
     }
 }
