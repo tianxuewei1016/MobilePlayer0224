@@ -21,6 +21,8 @@ import com.atguigu.mobileplayer0224.R;
 import com.atguigu.mobileplayer0224.activity.SystemAudioPlayerActivity;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -137,7 +139,9 @@ public class MusicPlayService extends Service {
      * 播放模式
      */
     private int playmode = REPEAT_NORMAL;
-
+    /**
+     * 当播放准备好的时候发的广播
+     */
     public static final String OPEN_COMPLETE = "com.atguigu.mobileplayer.OPEN_COMPLETE";
     /**
      * true:正常播放完成
@@ -252,7 +256,9 @@ public class MusicPlayService extends Service {
         @Override
         public void onPrepared(MediaPlayer mp) {
             //发广播
-            notifyChange(OPEN_COMPLETE);
+            //notifyChange(OPEN_COMPLETE);
+            //3.发消息
+            EventBus.getDefault().post(mediaItem);
             start();
         }
     }

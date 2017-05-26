@@ -11,12 +11,11 @@ import android.view.ViewGroup;
  * 作用：
  */
 
-public class VitamioVideoView extends io.vov.vitamio.widget.VideoView{
-
-
+public class VitamioVideoView extends io.vov.vitamio.widget.VideoView {
     /**
      * 带两个参数的构造方法
      * 在布局文件中一定不能少,少的话会崩溃
+     *
      * @param context
      * @param attrs
      */
@@ -28,14 +27,13 @@ public class VitamioVideoView extends io.vov.vitamio.widget.VideoView{
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         //保存测量的宽和高
-        setMeasuredDimension(widthMeasureSpec,heightMeasureSpec);
+        setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
     }
 
-    public void setVideoSize(int width,int height){
+    public void setVideoSize(int width, int height) {
         ViewGroup.LayoutParams l = getLayoutParams();
         l.width = width;
         l.height = height;
         setLayoutParams(l);
     }
-
 }

@@ -23,8 +23,13 @@ import android.widget.TextView;
 
 import com.atguigu.mobileplayer0224.IMusicPlayService;
 import com.atguigu.mobileplayer0224.R;
+import com.atguigu.mobileplayer0224.bean.MediaItem;
 import com.atguigu.mobileplayer0224.service.MusicPlayService;
 import com.atguigu.mobileplayer0224.utils.Utils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -107,9 +112,12 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
 //                    service.openAudio(position);//打开播放的资源
                     if (notification) {
                         //什么不用做
-                        setViewData();
+                        setViewData(null);
                     } else {
                         service.openAudio(position);//打开播放第0个音频
+
+                        tvArtist.setText(service.getArtistName());
+                        tvAudioname.setText(service.getAudioName());
                     }
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -183,6 +191,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         registerReceiver(receiver, intentFilter);
 
         utils = new Utils();
+
+        //1.注册EventBus
+        EventBus.getDefault().register(this);
     }
 
     class MyReceiver extends BroadcastReceiver {
@@ -190,15 +201,16 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             //主线程中
-            setViewData();
+            setViewData(null);
         }
     }
 
-    private void setViewData() {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void setViewData(MediaItem mediaItem) {
         try {
             setButtonImage();
-            tvArtist.setText(service.getArtistName());
-            tvAudioname.setText(service.getAudioName());
+
+            //只有准备好的时候,得到的才不是-1
             int duration = service.getDuration();
             seekbarAudio.setMax(duration);
         } catch (RemoteException e) {
@@ -288,15 +300,15 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     }
 
     private void setButtonImage() {
-        
+
         //从服务器得到播放模式
         try {
             int playmode = service.getPlaymode();
-            if(playmode == MusicPlayService.REPEAT_NORMAL) {
+            if (playmode == MusicPlayService.REPEAT_NORMAL) {
                 btnPlaymode.setBackgroundResource(R.drawable.btn_playmode_normal_selector);
-            }else if(playmode == MusicPlayService.REPEAT_SINGLE) {
+            } else if (playmode == MusicPlayService.REPEAT_SINGLE) {
                 btnPlaymode.setBackgroundResource(R.drawable.btn_playmode_single_selector);
-            }else if(playmode == MusicPlayService.REPEAT_ALL) {
+            } else if (playmode == MusicPlayService.REPEAT_ALL) {
                 btnPlaymode.setBackgroundResource(R.drawable.btn_playmode_all_selector);
             }
         } catch (RemoteException e) {
@@ -315,6 +327,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
             unregisterReceiver(receiver);
             receiver = null;
         }
+
+        //2.取消注册
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 }
