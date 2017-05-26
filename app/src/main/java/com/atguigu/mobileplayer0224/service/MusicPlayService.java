@@ -309,7 +309,6 @@ public class MusicPlayService extends Service {
                 .setContentIntent(pi)
                 .build();
         nm.notify(1, notification);
-
     }
 
     /**
