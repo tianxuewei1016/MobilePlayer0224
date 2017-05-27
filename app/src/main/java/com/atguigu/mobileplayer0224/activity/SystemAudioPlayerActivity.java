@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -28,6 +29,7 @@ import com.atguigu.mobileplayer0224.bean.MediaItem;
 import com.atguigu.mobileplayer0224.service.MusicPlayService;
 import com.atguigu.mobileplayer0224.utils.LyricUtils;
 import com.atguigu.mobileplayer0224.utils.Utils;
+import com.atguigu.mobileplayer0224.view.BaseVisualizerView;
 import com.atguigu.mobileplayer0224.view.LyricShowView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -69,6 +71,8 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     LinearLayout llBottom;
     @InjectView(R.id.lyric_show_view)
     LyricShowView lyricShowView;
+    @InjectView(R.id.visualizerview)
+    BaseVisualizerView visualizerview;
 
     //这个就是IMusicPlayService.stub的实例
     private IMusicPlayService service;
@@ -77,6 +81,8 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
     private MyReceiver receiver;
 
     private boolean notification;
+
+    private Visualizer mVisualizer;
 
     private final static int PROGRESS = 0;
     /**
@@ -264,7 +270,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
             //设置到歌词显示控件上
             lyricShowView.setLyrics(lyrics);
             //3.如果有歌词，就歌词同步
-            if(lyricUtils.isLyric()){
+            if (lyricUtils.isLyric()) {
                 handler.sendEmptyMessage(SHOW_LYRIC);
             }
 
@@ -273,7 +279,28 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         }
         //发送更新的进度
         handler.sendEmptyMessage(PROGRESS);
+        //显示音乐频谱
+        setupVisualizerFxAndUi();
+    }
 
+    /**
+     * 生成一个VisualizerView对象，使音频频谱的波段能够反映到 VisualizerView上
+     */
+    private void setupVisualizerFxAndUi() {
+
+        int audioSessionid = 0;
+        try {
+            audioSessionid = service.getAudioSessionId();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        System.out.println("audioSessionid==" + audioSessionid);
+        mVisualizer = new Visualizer(audioSessionid);
+        // 参数内必须是2的位数
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        // 设置允许波形表示，并且捕获它
+        visualizerview.setVisualizer(mVisualizer);
+        mVisualizer.setEnabled(true);
     }
 
     private void getData() {
@@ -281,6 +308,14 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         notification = getIntent().getBooleanExtra("notification", false);
         if (!notification) {
             position = getIntent().getIntExtra("position", 0);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(isFinishing()) {
+            mVisualizer.release();
         }
     }
 

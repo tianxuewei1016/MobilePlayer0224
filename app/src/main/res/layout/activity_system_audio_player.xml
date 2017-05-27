@@ -17,7 +17,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:src="@drawable/now_playing_matrix_01" />
+            android:src="@drawable/now_playing_matrix_01"
+            android:visibility="gone" />
+
+        <com.atguigu.mobileplayer0224.view.BaseVisualizerView
+            android:id="@+id/visualizerview"
+            android:layout_width="200dp"
+            android:layout_height="50dp"
+            android:layout_centerHorizontal="true" />
 
         <TextView
             android:id="@+id/tv_artist"
@@ -110,11 +117,12 @@
         </LinearLayout>
 
     </LinearLayout>
+
     <com.atguigu.mobileplayer0224.view.LyricShowView
         android:id="@+id/lyric_show_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/ll_bottom"
-        android:layout_below="@+id/rl_top"/>
+        android:layout_below="@+id/rl_top" />
 
 </RelativeLayout>

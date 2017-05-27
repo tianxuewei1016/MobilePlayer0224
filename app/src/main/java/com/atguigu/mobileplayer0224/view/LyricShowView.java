@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.atguigu.mobileplayer0224.bean.Lyric;
+import com.atguigu.mobileplayer0224.utils.DensityUtil;
 
 import java.util.ArrayList;
 
@@ -18,6 +19,7 @@ import java.util.ArrayList;
  */
 
 public class LyricShowView extends TextView {
+    private final Context context;
     private Paint paintGreen;
     private int width;
     private int height;
@@ -34,6 +36,7 @@ public class LyricShowView extends TextView {
 
     public LyricShowView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        this.context = context;
         initView();
     }
 
@@ -45,17 +48,18 @@ public class LyricShowView extends TextView {
     }
 
     private void initView() {
+        textHeight = DensityUtil.dip2px(context, 20);
         paintGreen = new Paint();
         paintGreen.setColor(Color.GREEN);
         paintGreen.setAntiAlias(true);
-        paintGreen.setTextSize(16);
+        paintGreen.setTextSize(DensityUtil.dip2px(context, 16));
         //设置居中
         paintGreen.setTextAlign(Paint.Align.CENTER);
 
         paintWhile = new Paint();
         paintWhile.setColor(Color.WHITE);
         paintWhile.setAntiAlias(true);
-        paintWhile.setTextSize(16);
+        paintWhile.setTextSize(DensityUtil.dip2px(context, 16));
         //设置居中
         paintWhile.setTextAlign(Paint.Align.CENTER);
 
