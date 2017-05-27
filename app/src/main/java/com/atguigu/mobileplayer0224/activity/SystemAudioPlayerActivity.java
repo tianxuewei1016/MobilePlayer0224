@@ -23,14 +23,19 @@ import android.widget.TextView;
 
 import com.atguigu.mobileplayer0224.IMusicPlayService;
 import com.atguigu.mobileplayer0224.R;
+import com.atguigu.mobileplayer0224.bean.Lyric;
 import com.atguigu.mobileplayer0224.bean.MediaItem;
 import com.atguigu.mobileplayer0224.service.MusicPlayService;
+import com.atguigu.mobileplayer0224.utils.LyricUtils;
 import com.atguigu.mobileplayer0224.utils.Utils;
 import com.atguigu.mobileplayer0224.view.LyricShowView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.File;
+import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -225,6 +230,12 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
         }
     }
 
+    public boolean isLyric() {
+        return isLyric;
+    }
+
+    private boolean isLyric = false;
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void setViewData(MediaItem mediaItem) {
         try {
@@ -233,12 +244,36 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
             //只有准备好的时候,得到的才不是-1
             int duration = service.getDuration();
             seekbarAudio.setMax(duration);
+
+            //解析歌词
+            //1.歌词所在的路径
+            String audioPath = service.getAudioPath();
+            //2.传入解析歌词的工具类
+            String lyricPath = audioPath.substring(0, audioPath.lastIndexOf("."));
+            File file = new File(lyricPath + ".lrc");
+            if (!file.exists()) {
+                file = new File(lyricPath + ".txt");
+            }
+
+            LyricUtils lyricUtils = new LyricUtils();
+            //把文件读进去
+            lyricUtils.readFile(file);
+            //3.如果有歌词,就歌词同步
+
+            ArrayList<Lyric> lyrics = lyricUtils.getLyrics();
+            //设置到歌词显示控件上
+            lyricShowView.setLyrics(lyrics);
+            //3.如果有歌词，就歌词同步
+            if(lyricUtils.isLyric()){
+                handler.sendEmptyMessage(SHOW_LYRIC);
+            }
+
         } catch (RemoteException e) {
             e.printStackTrace();
         }
         //发送更新的进度
         handler.sendEmptyMessage(PROGRESS);
-        handler.sendEmptyMessage(SHOW_LYRIC);
+
     }
 
     private void getData() {
@@ -351,7 +386,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity {
 
         //2.取消注册
         EventBus.getDefault().unregister(this);
-        if(handler!=null) {
+        if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
         super.onDestroy();

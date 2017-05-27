@@ -28,7 +28,9 @@ public class LyricShowView extends TextView {
      */
     private int index;
     private float textHeight = 20;
-    private int currentPosition;
+    private float currentPosition;
+    private long timePoint;
+    private long sleepTime;
 
     public LyricShowView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -57,19 +59,19 @@ public class LyricShowView extends TextView {
         //设置居中
         paintWhile.setTextAlign(Paint.Align.CENTER);
 
-        //准备歌词
-        lyrics = new ArrayList<>();
-        Lyric lyric = new Lyric();
-        for (int i = 0; i < 1000; i++) {
-            //不同歌词
-            lyric.setContent("aaaaaaaaaaaaaaa_" + i);
-            lyric.setSleepTime(2000);
-            lyric.setTimePoint(2000 * i);
-            //添加到集合
-            lyrics.add(lyric);
-            //重新创建新对象
-            lyric = new Lyric();
-        }
+//        //准备歌词
+//        lyrics = new ArrayList<>();
+//        Lyric lyric = new Lyric();
+//        for (int i = 0; i < 1000; i++) {
+//            //不同歌词
+//            lyric.setContent("aaaaaaaaaaaaaaa_" + i);
+//            lyric.setSleepTime(2000);
+//            lyric.setTimePoint(2000 * i);
+//            //添加到集合
+//            lyrics.add(lyric);
+//            //重新创建新对象
+//            lyric = new Lyric();
+//        }
     }
 
 
@@ -82,6 +84,16 @@ public class LyricShowView extends TextView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (lyrics != null && lyrics.size() > 0) {
+
+            if (index != lyrics.size() - 1) {
+                float push = 0;
+                if (sleepTime == 0) {
+                    push = 0;
+                } else {
+                    push = ((currentPosition - timePoint) / sleepTime) * textHeight;
+                }
+                canvas.translate(0, -push);
+            }
             //才有歌词
             String currentContent = lyrics.get(index).getContent();
             canvas.drawText(currentContent, width / 2, height / 2, paintGreen);
@@ -134,10 +146,19 @@ public class LyricShowView extends TextView {
                 if (currentPosition >= lyrics.get(tempIndex).getTimePoint()) {
                     //中间高亮显示的那一句
                     index = tempIndex;
+
+                    timePoint = lyrics.get(index).getTimePoint();
+                    sleepTime = lyrics.get(index).getSleepTime();
                 }
+            } else {
+                index = i;
             }
         }
         //什么方法导致OnDraw
         invalidate();
+    }
+
+    public void setLyrics(ArrayList<Lyric> lyrics) {
+        this.lyrics = lyrics;
     }
 }
